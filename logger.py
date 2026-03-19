@@ -16,15 +16,12 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import ipaddress
-from logger import log_error
+class Colors:
+    RED = '\033[31m'
+    RESET = '\033[0m'
 
-def validate_ipv4(ip_str):
-    component = "ip_validator"
-    try:
-        ipaddress.IPv4Address(ip_str)
-        return True
-    except ValueError:
-        log_error(component, f"Wrong IP address format, got {ip_str}")
-        ipaddress.IPv4Address(ip_str)
-        return False
+def log_info(component, message):
+    print(f"{component}: {message}")
+
+def log_error(component, message):
+    print(Colors.RED + f"{component}: {message}" + Colors.RESET)

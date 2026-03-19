@@ -19,10 +19,13 @@
 import requests, os, time
 from functions import validate_ipv4
 from fixer import change_node_ip
+from logger import log_info, log_error
+
+component = os.path.splitext(os.path.basename(__file__))[0]
 
 def get_current_ip():
     # ip checker address
-    print("Controller: Sending request to ipinfo.io to check current IP...")
+    log_info(component, "sending request to ipinfo.io to check current IP...")
     url = 'https://ipinfo.io'
     response = requests.get(url)
 
@@ -31,7 +34,7 @@ def get_current_ip():
     current_ip = ipinfo_data['ip']
 
     # use IP validator function to check current ip string
-    print("Controller: Checking current IP format validity...")
+    log_info(component, "checking current IP format validity...")
     validate_ipv4(current_ip)
 
     return current_ip
@@ -41,7 +44,7 @@ def get_desired_ip():
     desired_ip = os.environ['DESIRED_IP']
 
     # use IP validator function to check desired ip string
-    print("Controller: Checking desired IP format validity...")
+    log_info(component, "checking desired IP format validity...")
     validate_ipv4(desired_ip)
 
     return desired_ip
@@ -52,14 +55,14 @@ def controller():
             current_ip = get_current_ip()
             desired_ip = get_desired_ip()
             if not current_ip == desired_ip:
-                print(f"Controller: Found problem: current IP is {current_ip}, but desired is {desired_ip}")
-                print("Controller: Sending request to fixer")
+                log_error(component, f"found problem: current IP is {current_ip}, but desired is {desired_ip}")
+                log_info(component, "sending request to fixer")
                 change_node_ip(current_ip, desired_ip)
-                print("Controller: fixer succeeded")
+                log_info(component, "fixer succeeded")
             time.sleep(1)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
-        print("Control loop stopped")
+        log_info(component, "control loop stopped")
 
 if __name__ == "__main__":
     controller()
