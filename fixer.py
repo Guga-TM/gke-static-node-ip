@@ -40,8 +40,7 @@ def get_single_instance_by_external_ip(
         for network_interface in instance.network_interfaces:
             for access_config in network_interface.access_configs:
                 if access_config.nat_i_p == ip:
-                    print(f"Found instance {instance}")
-                    return instance.name # should be 'instance.id' probably
+                    return instance.name, access_config.name # should be 'instance.id' probably
         
     return -1
 
@@ -67,7 +66,7 @@ def delete_access_config(
     # Make the request
     operation = client.delete_access_config(request=request)
 
-    print(f"Deleting External IP (access config) for {instance_name}...")
+    print(f"Deleting External IP (access config) for {instance}...")
     operation.result()
     print(f"Deleted successfully.")
     print(operation)
@@ -87,16 +86,17 @@ def add_access_config(
     # Define the access configuration
     access_config = compute_v1.AccessConfig()
     access_config.network_tier = network_tier
+    access_config.nat_i_p = ip_to_set
 
     operation = client.add_access_config(
         project=project_id,
         zone=zone,
-        instance=instance_name,
+        instance=instance,
         network_interface=network_interface_name,
         access_config_resource=access_config
     )
 
-    print(f"Setting IP address {ip_to_set} to {instance_name}...")
+    print(f"Setting IP address {ip_to_set} to {instance}...")
     operation.result()
     print(f"IP address set successfully.")
     print(operation)
@@ -106,16 +106,17 @@ def change_node_ip(current_ip, desired_ip):
     project_id = os.environ['PROJECT_ID']
     network_tier = os.environ['NETWORK_TIER']
     zone = os.environ['ZONE']
-    instance = get_single_instance_by_external_ip(project_id, zone, current_ip)
+    instance_name, access_config_name = get_single_instance_by_external_ip(project_id, zone, current_ip)
     delete_access_config(
         project_id=project_id,
         zone=zone,
-        instance=instance
+        instance=instance_name,
+        current_access_config_name=access_config_name
     )
     add_access_config(
         project_id=project_id,
         network_tier=network_tier,
         zone=zone,
-        instance=instance,
+        instance=instance_name,
         ip_to_set=desired_ip
     )
