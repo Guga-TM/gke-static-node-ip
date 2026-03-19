@@ -17,6 +17,7 @@
 # email for contacts: aragornguga@gmail.com
 
 from google.cloud import compute_v1
+import os
 
 def get_single_instance_by_external_ip(
     project_id: str,
@@ -40,11 +41,11 @@ def get_single_instance_by_external_ip(
 
 # We don't know if access config name is set to its default value
 def delete_access_config(
-    network_interface_name: str = "nic0",
     project_id: str,
     zone: str,
     instance: str,
-    current_access_config_name: str = "External NAT"
+    current_access_config_name: str,
+    network_interface_name: str = "nic0"
 ):
     client = compute_v1.InstancesClient()
 
@@ -68,12 +69,12 @@ def delete_access_config(
 # New Access Config will be created
 # with a default name "External NAT"
 def add_access_config(
-    network_interface_name: str = "nic0",
     project_id: str,
-    network_tier: str = "PREMIUM",
+    network_tier: str,
     zone: str,
     instance: str,
-    ip_to_set: str
+    ip_to_set: str,
+    network_interface_name: str = "nic0"
 ):
     client = compute_v1.InstancesClient()
     
