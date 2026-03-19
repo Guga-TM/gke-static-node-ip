@@ -25,17 +25,23 @@ def get_single_instance_by_external_ip(
     ip: str
 ):
     client = compute_v1.InstancesClient()
+
+    # Initialize request arguments
+    request = compute_v1.ListInstancesRequest(
+        project=project_id,
+        zone=zone
+    )
+
+    # List all instances in the zone
+    response = client.list(request=request)
     
-    # Filter for the specific external IP
-    instance_filter = f'networkInterfaces.accessConfigs.natIP={ip}'
-    
-    # List instances with the filter
-    response = client.list(project=project_id, zone=zone, filter=instance_filter)
-    
-    # Extract only the names
+    # Find instance with IP and return name only
     for instance in response :
-        print(f"Found instance {instance}")
-        return instance.name # should be 'instance.id' probably
+        for network_interface in instance.network_interfaces:
+            for access_config in network_interface.access_configs:
+                if access_config.nat_i_p == ip:
+                    print(f"Found instance {instance}")
+                    return instance.name # should be 'instance.id' probably
         
     return -1
 
