@@ -2,7 +2,7 @@
 
 ### Controller
 
-Runs on each node when IP needs to be controlled. Sends requests to Fixer.
+Runs on each node where IP needs to be controlled. Sends requests to Fixer.
 
 ### Fixer
 

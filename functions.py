@@ -104,14 +104,20 @@ def get_current_ip():
 
     return current_ip
 
+def get_desired_ip():
+    # get value from env variable
+    desired_ip = os.environ['DESIRED_IP']
+
+    # use IP validator function to check desired ip string
+    log_info(component, "checking desired IP format validity...")
+    validate_ipv4(desired_ip)
+
+    return desired_ip
+
 def get_vars_from_env():
     component = "env_vars_fetcher"
     # get values from env variables
     # and then check them using validator functions
-
-    desired_ip = os.environ['DESIRED_IP']
-    log_info(component, "sending request to check desired IP format validity")
-    validate_ipv4(desired_ip)
 
     project_id = os.environ['PROJECT_ID']
     log_info(component, "sending request to check GCP project id validity")
@@ -125,4 +131,4 @@ def get_vars_from_env():
     log_info(component, "sending request to check GCP network tier validity")
     validate_gcp_network_tier(network_tier)
 
-    return desired_ip, project_id, zone, network_tier
+    return project_id, zone, network_tier

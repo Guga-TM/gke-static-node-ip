@@ -20,6 +20,7 @@ import os
 from google.cloud import compute_v1
 from google.api_core import exceptions
 from logger import log_info, log_error, log_system
+from functions import get_vars_from_env
 
 component = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -143,17 +144,17 @@ def change_node_ip(
     project_id,
     zone,
     network_tier,
-    current_ip,
+    instance_name,
     desired_ip
 ):
-    log_system(f"fixer got request to change IP from {current_ip} to {desired_ip}")
-    instance_name, access_config_name = get_single_instance_by_external_ip(project_id, zone, current_ip)
-    if instance_name == -1:
-        log_error(component, f"failed to find instance with external IP {current_ip} in zone {zone}")
-        raise Exception("failed to find instance")
-    else:
-        log_info(component, f"found instance {instance_name} with IP {current_ip}")
+    log_system(f"fixer got request to change IP of {instance_name} to {desired_ip}")
     
+    project_id, zone, network_tier = get_vars_from_env()
+
+    # todo 
+    # get access config
+    # check if deletion is needed
+
     delete_access_config(
         project_id=project_id,
         zone=zone,
