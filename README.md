@@ -2,6 +2,7 @@
 - compute.instances.addAccessConfig
 - compute.instances.deleteAccessConfig
 - compute.instances.get
+- compute.instances.list
 - compute.instances.update
 - compute.zones.list
 - resourcemanager.projects.get
