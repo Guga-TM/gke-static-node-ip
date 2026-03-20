@@ -58,8 +58,8 @@ def controller():
                 log_error(component, f"found problem: current IP is {current_ip}, but desired is {desired_ip}")
                 log_info(component, "sending request to fixer")
                 change_node_ip(current_ip, desired_ip)
-                log_info(component, "fixer succeeded")
-            time.sleep(1)
+                log_info(component, "fixer finished")
+            time.sleep(5)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
         log_info(component, "control loop stopped")

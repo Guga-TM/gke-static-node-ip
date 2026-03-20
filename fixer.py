@@ -16,8 +16,12 @@
 
 # email for contacts: aragornguga@gmail.com
 
-from google.cloud import compute_v1
 import os
+from google.cloud import compute_v1
+from google.api_core import exceptions
+from logger import log_info, log_error
+
+component = os.path.splitext(os.path.basename(__file__))[0]
 
 def get_single_instance_by_external_ip(
     project_id: str,
@@ -40,9 +44,9 @@ def get_single_instance_by_external_ip(
         for network_interface in instance.network_interfaces:
             for access_config in network_interface.access_configs:
                 if access_config.nat_i_p == ip:
-                    return instance.name, access_config.name # should be 'instance.id' probably
+                    return instance.name, access_config.name
         
-    return -1
+    return -1, -1
 
 # We don't know if access config name is set to its default value
 def delete_access_config(
@@ -66,10 +70,40 @@ def delete_access_config(
     # Make the request
     operation = client.delete_access_config(request=request)
 
-    print(f"Deleting External IP (access config) for {instance}...")
+    log_info(component, f"deleting External IP (access config) for {instance}...")
     operation.result()
-    print(f"Deleted successfully.")
-    print(operation)
+    log_info(component, f"deleted successfully.")
+
+def add_access_config_random_ip(
+    project_id: str,
+    network_tier: str,
+    zone: str,
+    instance: str,
+    network_interface_name: str = "nic0"
+):
+    client = compute_v1.InstancesClient()
+    
+    # Define the access configuration
+    access_config = compute_v1.AccessConfig()
+    access_config.network_tier = network_tier
+
+    operation = client.add_access_config(
+        project=project_id,
+        zone=zone,
+        instance=instance,
+        network_interface=network_interface_name,
+        access_config_resource=access_config
+    )
+
+    log_info(component, f"setting random IP address to {instance}...")
+    try:
+        operation.result()
+        log_info(component, f"successfully set random IP address. Will try to change it to desired on the next run")
+    except exceptions.BadRequest as google_exception:
+        log_error(component, "failed to assign random IP address, see error below")
+        raise exceptions.BadRequest(google_exception)
+
+
 
 # New Access Config will be created
 # with a default name "External NAT"
@@ -86,11 +120,7 @@ def add_access_config(
     # Define the access configuration
     access_config = compute_v1.AccessConfig()
     access_config.network_tier = network_tier
-
-    # add support for setting random IP if the value is not set
-    # on the function call
-    if not ip_to_set == "random"
-        access_config.nat_i_p = ip_to_set
+    access_config.nat_i_p = ip_to_set
 
     operation = client.add_access_config(
         project=project_id,
@@ -100,23 +130,34 @@ def add_access_config(
         access_config_resource=access_config
     )
 
-    print(f"Setting IP address {ip_to_set} to {instance}...")
-    operation.result()
-    print(f"IP address set successfully.")
-    print(operation)
-
+    log_info(component, f"setting IP address {ip_to_set} to {instance}...")
+    try:
+        operation.result()
+        log_info(component, f"desired IP address set successfully.")
+    except exceptions.BadRequest as google_exception:
+        log_error(component, google_exception)
+        log_info(component, "Desired IP is not available, assigning random IP")
+        add_access_config_random_ip(project_id, network_tier, zone, instance)
 
 def change_node_ip(current_ip, desired_ip):
     project_id = os.environ['PROJECT_ID']
     network_tier = os.environ['NETWORK_TIER']
     zone = os.environ['ZONE']
+
     instance_name, access_config_name = get_single_instance_by_external_ip(project_id, zone, current_ip)
+    if instance_name == -1:
+        log_error(component, f"failed to find instance with external IP {current_ip} in zone {zone}")
+        raise Exception("failed to find instance")
+    else:
+        log_info(component, f"found instance {instance_name} with IP {current_ip}")
+    
     delete_access_config(
         project_id=project_id,
         zone=zone,
         instance=instance_name,
         current_access_config_name=access_config_name
     )
+
     add_access_config(
         project_id=project_id,
         network_tier=network_tier,
