@@ -78,7 +78,7 @@ def add_access_config(
     network_tier: str,
     zone: str,
     instance: str,
-    ip_to_set: str,
+    ip_to_set: str = "random",
     network_interface_name: str = "nic0"
 ):
     client = compute_v1.InstancesClient()
@@ -86,7 +86,11 @@ def add_access_config(
     # Define the access configuration
     access_config = compute_v1.AccessConfig()
     access_config.network_tier = network_tier
-    access_config.nat_i_p = ip_to_set
+
+    # add support for setting random IP if the value is not set
+    # on the function call
+    if not ip_to_set == "random"
+        access_config.nat_i_p = ip_to_set
 
     operation = client.add_access_config(
         project=project_id,
