@@ -19,12 +19,14 @@
 import time
 from functions import validate_ipv4, get_current_ip, get_vars_from_env
 from fixer import change_node_ip
-from logger import log_info, log_error
+from logger import log_info, log_error, log_system
 
 def controller():
     component = "controller"
+    log_system("############## INITIALIZING GKE-STATIC-NODE-IP-CONTROLLER ##############")
     desired_ip, project_id, zone, network_tier = get_vars_from_env()
     try:
+        log_system("############## STARTING GKE-STATIC-NODE-IP-CONTROLLER ##################")
         while True:
             current_ip = get_current_ip()
             if not current_ip == desired_ip:

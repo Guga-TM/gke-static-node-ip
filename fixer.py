@@ -19,7 +19,7 @@
 import os
 from google.cloud import compute_v1
 from google.api_core import exceptions
-from logger import log_info, log_error
+from logger import log_info, log_error, log_system
 
 component = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -133,10 +133,10 @@ def add_access_config(
     log_info(component, f"setting IP address {ip_to_set} to {instance}...")
     try:
         operation.result()
-        log_info(component, f"desired IP address set successfully.")
+        log_system("desired IP address set successfully")
     except exceptions.BadRequest as google_exception:
         log_error(component, google_exception)
-        log_info(component, "Desired IP is not available, assigning random IP")
+        log_error(component, "Desired IP is not available, assigning random IP")
         add_access_config_random_ip(project_id, network_tier, zone, instance)
 
 def change_node_ip(
@@ -146,6 +146,7 @@ def change_node_ip(
     current_ip,
     desired_ip
 ):
+    log_system(f"fixer got request to change IP from {current_ip} to {desired_ip}")
     instance_name, access_config_name = get_single_instance_by_external_ip(project_id, zone, current_ip)
     if instance_name == -1:
         log_error(component, f"failed to find instance with external IP {current_ip} in zone {zone}")

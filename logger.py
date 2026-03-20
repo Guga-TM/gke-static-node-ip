@@ -16,12 +16,30 @@
 
 # email for contacts: aragornguga@gmail.com
 
+import os
+
 class Colors:
     RED = '\033[31m'
+    BLUE = '\033[34m'
     RESET = '\033[0m'
 
+def get_log_level():
+    # default is 'error'
+    log_level = os.getenv('LOG_LEVEL', 'error')
+
+    # validation
+    if log_level not in ['error', 'info']:
+        log_error('logger', f'log level {log_level} is not defined')
+        raise Exception
+    
+    return log_level
+
+def log_system(message):
+    print(Colors.BLUE + message + Colors.RESET)
+
 def log_info(component, message):
-    print(f"{component}: {message}")
+    if get_log_level() == 'info': 
+        print(f"{component}: {message}")
 
 def log_error(component, message):
     print(Colors.RED + f"{component}: {message}" + Colors.RESET)
