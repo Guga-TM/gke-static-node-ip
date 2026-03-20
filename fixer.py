@@ -139,11 +139,13 @@ def add_access_config(
         log_info(component, "Desired IP is not available, assigning random IP")
         add_access_config_random_ip(project_id, network_tier, zone, instance)
 
-def change_node_ip(current_ip, desired_ip):
-    project_id = os.environ['PROJECT_ID']
-    network_tier = os.environ['NETWORK_TIER']
-    zone = os.environ['ZONE']
-
+def change_node_ip(
+    project_id,
+    zone,
+    network_tier,
+    current_ip,
+    desired_ip
+):
     instance_name, access_config_name = get_single_instance_by_external_ip(project_id, zone, current_ip)
     if instance_name == -1:
         log_error(component, f"failed to find instance with external IP {current_ip} in zone {zone}")

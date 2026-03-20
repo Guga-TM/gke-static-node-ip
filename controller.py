@@ -16,49 +16,24 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import requests, os, time
-from functions import validate_ipv4
+import time
+from functions import validate_ipv4, get_current_ip, get_vars_from_env
 from fixer import change_node_ip
 from logger import log_info, log_error
 
-component = os.path.splitext(os.path.basename(__file__))[0]
-
-def get_current_ip():
-    # ip checker address
-    log_info(component, "sending request to ipinfo.io to check current IP...")
-    url = 'https://ipinfo.io'
-    response = requests.get(url)
-
-    # convert response to json
-    ipinfo_data = response.json()
-    current_ip = ipinfo_data['ip']
-
-    # use IP validator function to check current ip string
-    log_info(component, "checking current IP format validity...")
-    validate_ipv4(current_ip)
-
-    return current_ip
-
-def get_desired_ip():
-    # get value from env variable
-    desired_ip = os.environ['DESIRED_IP']
-
-    # use IP validator function to check desired ip string
-    log_info(component, "checking desired IP format validity...")
-    validate_ipv4(desired_ip)
-
-    return desired_ip
-
 def controller():
+    component = "controller"
+    desired_ip, project_id, zone, network_tier = get_vars_from_env()
     try:
         while True:
             current_ip = get_current_ip()
-            desired_ip = get_desired_ip()
             if not current_ip == desired_ip:
                 log_error(component, f"found problem: current IP is {current_ip}, but desired is {desired_ip}")
                 log_info(component, "sending request to fixer")
-                change_node_ip(current_ip, desired_ip)
+                change_node_ip(project_id, zone, network_tier, current_ip, desired_ip)
                 log_info(component, "fixer finished")
+            else:
+                log_info(component, "current IP matches desired IP")
             time.sleep(5)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
