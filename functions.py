@@ -45,12 +45,12 @@ def check_project_validity(project_id):
 
         return True
 
-    except NotFound:
+    except exceptions.NotFound:
         log_error(component, f"project not found: {project_id}")
-        raise exception.NotFound
-    except Forbidden:
+        raise exceptions.NotFound
+    except exceptions.Forbidden:
         log_error(component, f"access forbidden (project exists, but you lack permissions): {project_id}")
-        raise exception.Forbidden
+        raise exceptions.Forbidden
     except Exception as e:
         log_error(component, f"an error occurred: {e}")
         raise Exception
