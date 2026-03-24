@@ -24,30 +24,40 @@ from functions import get_vars_from_env
 
 component = os.path.splitext(os.path.basename(__file__))[0]
 
-def get_single_instance_by_external_ip(
+def get_instance_access_config_if_exists(
     project_id: str,
     zone: str,
-    ip: str
+    instance: str
 ):
     client = compute_v1.InstancesClient()
 
     # Initialize request arguments
-    request = compute_v1.ListInstancesRequest(
+    request = compute_v1.GetInstanceRequest(
         project=project_id,
-        zone=zone
+        zone=zone,
+        instance=instance
     )
 
     # List all instances in the zone
-    response = client.list(request=request)
+    response = client.get(request=request)
     
+    access_configs_found = 0
+    access_config_name = ""
+
     # Find instance with IP and return name only
-    for instance in response :
-        for network_interface in instance.network_interfaces:
-            for access_config in network_interface.access_configs:
-                if access_config.nat_i_p == ip:
-                    return instance.name, access_config.name
+    for network_interface in response.network_interfaces:
+        for access_config in network_interface.access_configs:
+            access_configs_found += 1
+            access_config_name = access_config.name
+
+    if access_configs_found == 0:
+        log_info(component, f"access configs not found for instance {instance}")
+        return -1
+    if access_configs_found > 1:
+        log_error(component, f"Found more access configs for {instance} than expected: {access_configs_found}")
+        raise Exception
         
-    return -1, -1
+    return access_config_name
 
 # We don't know if access config name is set to its default value
 def delete_access_config(
@@ -151,17 +161,23 @@ def change_node_ip(
     
     project_id, zone, network_tier = get_vars_from_env()
 
-    # todo 
-    # get access config
-    # check if deletion is needed
-
-    delete_access_config(
+    # get access config name of the instance
+    access_config_name = get_instance_access_config_if_exists(
         project_id=project_id,
         zone=zone,
-        instance=instance_name,
-        current_access_config_name=access_config_name
+        instance=instance_name
     )
 
+    # deleting old access config if it exists
+    if access_config_name != -1:
+        delete_access_config(
+            project_id=project_id,
+            zone=zone,
+            instance=instance_name,
+            current_access_config_name=access_config_name
+        )
+
+    # trying to add desired ip
     add_access_config(
         project_id=project_id,
         network_tier=network_tier,
