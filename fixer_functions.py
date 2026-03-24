@@ -18,18 +18,9 @@
 
 import ipaddress, requests, os
 from logger import log_info, log_error
+from ip_validator import validate_ipv4
 from google.cloud import compute_v1, resourcemanager_v3
 from google.api_core import exceptions
-
-def validate_ipv4(ip_str):
-    component = "ip_validator"
-    try:
-        ipaddress.IPv4Address(ip_str)
-        return True
-    except ValueError:
-        log_error(component, f"Wrong IP address format, got {ip_str}")
-        ipaddress.IPv4Address(ip_str)
-        return False
 
 def check_project_validity(project_id):
     component = "gcp_project_id_validator"
@@ -78,41 +69,6 @@ def validate_gcp_network_tier(network_tier):
         raise Exception
     
     return True
-
-def get_current_ip():
-    component = "current_ip_fetcher"
-    url = 'https://ipinfo.io'
-    current_ip = ''
-    log_info(component, "sending request to ipinfo.io to check current IP")
-
-    for i in range(1, 6):
-        try:
-            response = requests.get(url, timeout=5)
-            # convert response to json
-            ipinfo_data = response.json()
-            current_ip = ipinfo_data['ip']
-        except requests.exceptions.Timeout:
-            if i < 5:
-                log_info(component, f"the request timed out, trying again - attempt {i}")
-            else:
-                log_error(component, "the request timed out 5 times, restarting application")
-                raise requests.exceptions.Timeout
-
-    # use IP validator function to check current ip string
-    log_info(component, "sending request to check current IP format validity")
-    validate_ipv4(current_ip)
-
-    return current_ip
-
-def get_desired_ip():
-    # get value from env variable
-    desired_ip = os.environ['DESIRED_IP']
-
-    # use IP validator function to check desired ip string
-    log_info(component, "checking desired IP format validity...")
-    validate_ipv4(desired_ip)
-
-    return desired_ip
 
 def get_vars_from_env():
     component = "env_vars_fetcher"

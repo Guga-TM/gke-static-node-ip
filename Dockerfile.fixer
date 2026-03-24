@@ -9,7 +9,7 @@ COPY requirements-fixer.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY functions.py logger.py fixer.py ./
+COPY fixer_functions.py logger.py fixer.py fixer_server.py ./
 
 # Command to run the application
-CMD ["python", "-u", "fixer-server.py"]
+CMD ["python", "-u", "fixer_server.py"]

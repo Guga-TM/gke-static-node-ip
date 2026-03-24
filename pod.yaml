@@ -1,0 +1,42 @@
+#https://github.com/GoogleContainerTools/distroless/blob/main/examples/python3-requirements/Dockerfile
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fixer
+  namespace: gke-static-node-ip
+spec:
+  serviceAccountName: gke-static-node-ip
+  containers:
+  - name: fixer
+    image: gcr.io/callmyapp/gke-static-node-ip:fixer-v2
+    env:
+    - name: PROJECT_ID
+      value: callmyapp-dev
+    - name: ZONE
+      value: us-central1-a
+    - name: NETWORK_TIER
+      value: PREMIUM
+    - name: LOG_LEVEL
+      value: info
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: controller
+  namespace: gke-static-node-ip
+spec:
+  nodeSelector:
+    cloud.google.com/gke-nodepool: test2
+  containers:
+  - name: controller
+    image: gcr.io/callmyapp/gke-static-node-ip:controller-v5
+    env:
+    - name: NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    - name: DESIRED_IP
+      value: 35.188.184.20
+    - name: LOG_LEVEL
+      value: info
