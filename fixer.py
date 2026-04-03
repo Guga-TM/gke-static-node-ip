@@ -20,7 +20,7 @@ import os
 from google.cloud import compute_v1
 from google.api_core import exceptions
 from logger import log_info, log_error, log_system
-from fixer_functions import get_vars_from_env
+from fixer_functions import get_validate_vars_from_env
 
 component = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -151,15 +151,13 @@ def add_access_config(
         add_access_config_random_ip(project_id, network_tier, zone, instance)
 
 def change_node_ip(
-    project_id,
-    zone,
-    network_tier,
     instance_name,
+    zone,
     desired_ip
 ):
     log_system(f"fixer got request to change IP of {instance_name} to {desired_ip}")
     
-    project_id, zone, network_tier = get_vars_from_env()
+    project_id, network_tier = get_validate_vars_from_env()
 
     # get access config name of the instance
     access_config_name = get_instance_access_config_if_exists(

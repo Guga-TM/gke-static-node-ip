@@ -13,8 +13,6 @@ spec:
     env:
     - name: PROJECT_ID
       value: callmyapp-dev
-    - name: ZONE
-      value: us-central1-a
     - name: NETWORK_TIER
       value: PREMIUM
     - name: LOG_LEVEL
@@ -38,5 +36,7 @@ spec:
           fieldPath: spec.nodeName
     - name: DESIRED_IP
       value: 35.188.184.20
+    - name: GCP_ZONE
+      value: us-central1-a
     - name: LOG_LEVEL
       value: info
