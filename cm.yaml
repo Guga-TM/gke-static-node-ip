@@ -33,3 +33,20 @@ data:
   project_id: callmyapp-dev
   network_tier: PREMIUM
   log_level: info
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: distributor-config
+  namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: distributor
+data:
+  nodepools_desired_ips: |
+    {
+      "test2": [
+        "35.188.184.20"
+      ]
+    }
+  log_level: info
