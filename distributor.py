@@ -23,10 +23,6 @@ from collections import defaultdict
 
 component = "distributor"
 
-# Configs can be set in Configuration class directly or using helper utility
-#config.load_kube_config()
-config.load_incluster_config()
-
 def get_k8s_nodes_from_nodepool(nodepool):
     v1 = client.CoreV1Api()
     
@@ -36,9 +32,6 @@ def get_k8s_nodes_from_nodepool(nodepool):
     nodes = v1.list_node(label_selector=label_selector)
     
     return nodes.items
-    # for node in nodes.items:
-    #     print(f"Node Name: {node.metadata.name}")
-    #     print(f"Labels: {node.metadata.labels}\n")
 
 def get_zone_of_k8s_node(node):
     zone_label = 'topology.gke.io/zone'

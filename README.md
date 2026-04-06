@@ -1,5 +1,9 @@
 ## App components
 
+### Distributor
+
+Converts `nodepool`->`desired ips set` mapping to a `node`->`desired ip` mapping. Updates `controller-config` configmap.
+
 ### Controller
 
 Runs on each node where IP needs to be controlled. Sends requests to Fixer. Using [ipify.org](https://www.ipify.org/) as API for fetching current IP address.
