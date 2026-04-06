@@ -52,6 +52,7 @@ def get_instance_access_config_if_exists(
 
     if access_configs_found == 0:
         log_info(component, f"access configs not found for instance {instance}")
+        log_info(component, "skipping access config deletion")
         return -1
     if access_configs_found > 1:
         log_error(component, f"Found more access configs for {instance} than expected: {access_configs_found}")
@@ -133,13 +134,23 @@ def add_access_config(
     access_config.network_tier = network_tier
     access_config.nat_i_p = ip_to_set
 
-    operation = client.add_access_config(
-        project=project_id,
-        zone=zone,
-        instance=instance,
-        network_interface=network_interface_name,
-        access_config_resource=access_config
-    )
+    try:
+        operation = client.add_access_config(
+            project=project_id,
+            zone=zone,
+            instance=instance,
+            network_interface=network_interface_name,
+            access_config_resource=access_config
+        )
+    except exceptions.BadRequest as google_exception:
+        log_error(component, google_exception)
+        raise exceptions.BadRequest(google_exception)
+    except exceptions.ClientError as google_exception:
+        log_error(component, google_exception)
+        raise exceptions.ClientError(google_exception)
+    except exceptions.GoogleAPICallError as google_exception:
+        log_error(component, google_exception.message)
+        raise exceptions.GoogleAPICallError(google_exception)
 
     log_info(component, f"setting IP address {ip_to_set} to {instance}...")
     try:

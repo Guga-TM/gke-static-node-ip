@@ -11,5 +11,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY fixer_functions.py logger.py fixer.py fixer_server.py ./
 
+ENV PYTHONUNBUFFERED="1"
+
 # Command to run the application
-CMD ["python", "-u", "fixer_server.py"]
+CMD ["gunicorn", \
+    "-w", "1", \
+    "-b", "0.0.0.0:6924", \
+    "--log-level", "error", \
+    "--capture-output", \
+    "--error-logfile",  "-", \
+    "fixer_server:app"]

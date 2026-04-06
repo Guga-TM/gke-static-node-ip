@@ -31,21 +31,23 @@ def validate_ipv4(ip_str):
         return False
 
 def get_current_ip():
-    url = 'https://ipinfo.io'
+    url = 'https://api.ipify.org?format=json'
     current_ip = ''
-    log_info(component, "sending request to ipinfo.io to check current IP")
+    attempts_count = 5
+    single_attempt_timeout = 5
+    log_info(component, "sending request to api.ipify.org to check current IP")
 
-    for i in range(1, 6):
+    for i in range(1, attempts_count+1):
         try:
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, timeout=single_attempt_timeout)
             # convert response to json
             ipinfo_data = response.json()
             current_ip = ipinfo_data['ip']
         except requests.exceptions.Timeout:
-            if i < 5:
+            if i < attempts_count:
                 log_info(component, f"the request timed out, trying again - attempt {i}")
             else:
-                log_error(component, "the request timed out 5 times, restarting application")
+                log_error(component, f"the request timed out {attempts_count} times, restarting application")
                 raise requests.exceptions.Timeout
 
     # use IP validator function to check current ip string
@@ -65,7 +67,7 @@ def get_desired_ip():
     return desired_ip
 
 def send_fix_request(instance_name, instance_zone, desired_ip):
-    url = 'http://fixer:6924'
+    url = 'http://fixer:6924/fix'
     data = {'instance_name': instance_name, 'zone': instance_zone, 'desired_ip': desired_ip}
 
     # sending post request
@@ -73,7 +75,7 @@ def send_fix_request(instance_name, instance_zone, desired_ip):
 
     status = response.status_code
     resp_data = response.text
-    if status == '200' :
+    if status == 200 :
         log_info(component, "got response 200 from fixer")
     else:
         log_error(component, f"request to fixer API failed with {status} error")
@@ -84,6 +86,7 @@ def controller():
     desired_ip = get_desired_ip()
     instance_name = os.environ['NODE_NAME']
     instance_zone = os.environ['GCP_ZONE']
+    check_rate = int(os.getenv('CHECK_RATE_SECONDS', '15'))
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-CONTROLLER ##################")
         while True:
@@ -95,7 +98,7 @@ def controller():
                 log_system("end of fix loop on controller's side")
             else:
                 log_info(component, "current IP matches desired IP")
-            time.sleep(5)
+            time.sleep(check_rate)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
         log_info(component, "control loop stopped")

@@ -16,21 +16,28 @@
 
 # email for contacts: aragornguga@gmail.com
 
-from flask import Flask
+from flask import Flask, request
 from fixer import change_node_ip
-import request
+import signal
+import sys
 
 app = Flask(__name__)
+
+def handle_sigterm(signum, frame):
+    print("Received SIGTERM, shutting down gracefully...")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 @app.route("/")
 def mainpage():
     return "Ok"
 
-@app.route("/fix", , methods=['POST'])
+@app.route("/fix", methods=['POST'])
 def process_fix_request():
     data = request.get_json()
     if not data:
-        return 400
+        return "JSON data not found", 400
 
     instance_name = data.get('instance_name')
     zone = data.get('zone')
@@ -38,9 +45,9 @@ def process_fix_request():
     try:
         change_node_ip(instance_name, zone, desired_ip)
     except:
-        return 500
+        return "Error in changing node IP", 500
 
-    return 200
+    return "Request completed", 200
 
 if __name__ == "__main__":
-    app.run(port=6924)
+    app.run(host='0.0.0.0', port=6924)

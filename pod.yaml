@@ -5,11 +5,15 @@ kind: Pod
 metadata:
   name: fixer
   namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: fixer
 spec:
   serviceAccountName: gke-static-node-ip
   containers:
   - name: fixer
-    image: gcr.io/callmyapp/gke-static-node-ip:fixer-v2
+    image: gcr.io/callmyapp/gke-static-node-ip:fixer
+    imagePullPolicy: Always
     env:
     - name: PROJECT_ID
       value: callmyapp-dev
@@ -23,12 +27,16 @@ kind: Pod
 metadata:
   name: controller
   namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: controller
 spec:
   nodeSelector:
     cloud.google.com/gke-nodepool: test2
   containers:
   - name: controller
-    image: gcr.io/callmyapp/gke-static-node-ip:controller-v5
+    image: gcr.io/callmyapp/gke-static-node-ip:controller
+    imagePullPolicy: Always
     env:
     - name: NODE_NAME
       valueFrom:

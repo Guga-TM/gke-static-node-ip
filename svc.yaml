@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fixer
+  namespace: gke-static-node-ip
+spec:
+  selector:
+    app: gke-static-node-ip
+    component: fixer
+  ports:
+  - protocol: TCP
+    port: 6924
+    targetPort: 6924

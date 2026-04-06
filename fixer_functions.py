@@ -16,9 +16,8 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import ipaddress, requests, os
+import ipaddress, os
 from logger import log_info, log_error
-from ip_validator import validate_ipv4
 from google.cloud import compute_v1, resourcemanager_v3
 from google.api_core import exceptions
 
@@ -71,6 +70,7 @@ def validate_gcp_network_tier(network_tier):
     return True
 
 def get_validate_vars_from_env():
+    # maybe all this validation may be moved somewhere else
     component = "env_vars_fetcher"
     # get values from env variables
     # and then check them using validator functions
