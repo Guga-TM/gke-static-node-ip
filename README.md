@@ -20,10 +20,9 @@ Runs on the nodes except the ones for which IP needs to be controlled. Sends req
 - resourcemanager.projects.get
 
 ## Required ENV variables
-- PROJECT_ID
-- ZONE
-- NETWORK_TIER
-- DESIRED_IP
+- `PROJECT_ID` - GCP Project ID
+- `NETWORK_TIER` - Network Tier which you use in your GCP Project. Must be one of `PREMIUM`,`STANDARD`
 
 ## Optional ENV variables
-- LOG_LEVEL (one of `info`, `error`)
+- `LOG_LEVEL` - one of `info`, `error`
+- `CHECK_RATE_SECONDS` - interval between requests to check current IP address on the Controller
