@@ -7,17 +7,7 @@ metadata:
     app: gke-static-node-ip
     component: controller
 data:
-  dynamic_json_nodes_data: |
-    {
-      "gke-frontier-test2-347a5a33-pse0": {
-        "desired_ip": "35.188.184.20",
-        "gcp_zone": "us-central1-a"
-      },
-      "some-other-node": {
-        "desired_ip": "some-ip",
-        "gcp_zone": "some-zone"
-      }
-    }
+  dynamic_json_nodes_data: ""
   check_rate_seconds: "15"
   log_level: info
 ---

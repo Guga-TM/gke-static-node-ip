@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: controller
+  namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: controller
+spec:
+  selector:
+    matchLabels:
+      app: gke-static-node-ip
+      component: controller
+  template:
+    metadata:
+      labels:
+        app: gke-static-node-ip
+        component: controller
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: cloud.google.com/gke-nodepool
+                  operator: In
+                  values:
+                  - test2
+      containers:
+        - name: controller
+          image: gcr.io/callmyapp/gke-static-node-ip:controller
+          imagePullPolicy: Always
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: NODES_DATA
+            valueFrom:
+              configMapKeyRef:
+                name: controller-config
+                key: dynamic_json_nodes_data
+          - name: CHECK_RATE_SECONDS
+            valueFrom:
+              configMapKeyRef:
+                name: controller-config
+                key: check_rate_seconds
+          - name: LOG_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: controller-config
+                key: log_level

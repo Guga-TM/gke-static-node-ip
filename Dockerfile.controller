@@ -1,3 +1,5 @@
+# todo #https://github.com/GoogleContainerTools/distroless/blob/main/examples/python3-requirements/Dockerfile
+
 FROM python:3.12-slim
 
 WORKDIR /app

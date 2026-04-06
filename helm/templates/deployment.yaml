@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distributor
+  namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: distributor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gke-static-node-ip
+      component: distributor
+  template:
+    metadata:
+      labels:
+        app: gke-static-node-ip
+        component: distributor
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: cloud.google.com/gke-nodepool
+                  operator: NotIn
+                  values:
+                  - test2
+      serviceAccountName: distributor
+      containers:
+      - name: distributor
+        image: gcr.io/callmyapp/gke-static-node-ip:distributor
+        imagePullPolicy: Always
+        env:
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: distributor-config
+              key: log_level
+        - name: NODES_DATA_RAW
+          valueFrom:
+            configMapKeyRef:
+              name: distributor-config
+              key: nodepools_desired_ips
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fixer
+  namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: fixer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gke-static-node-ip
+      component: fixer
+  template:
+    metadata:
+      labels:
+        app: gke-static-node-ip
+        component: fixer
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: cloud.google.com/gke-nodepool
+                  operator: NotIn
+                  values:
+                  - test2
+      serviceAccountName: gke-static-node-ip
+      containers:
+      - name: fixer
+        image: gcr.io/callmyapp/gke-static-node-ip:fixer
+        imagePullPolicy: Always
+        env:
+        - name: PROJECT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: fixer-config
+              key: project_id
+        - name: NETWORK_TIER
+          valueFrom:
+            configMapKeyRef:
+              name: fixer-config
+              key: network_tier
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: fixer-config
+              key: log_level
