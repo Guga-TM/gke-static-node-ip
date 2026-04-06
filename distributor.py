@@ -65,16 +65,42 @@ def get_process_nodes_data_from_json():
         nodes = get_k8s_nodes_from_nodepool(nodepool)
         nodes_data_parsed |= assign_ips_to_nodes(nodes, desired_ips_set)
     
-    print(nodes_data_parsed)
+    return nodes_data_parsed
+
+def update_cm_resource(nodes_data_parsed):
+    v1 = client.CoreV1Api()
+
+    nodes_data_jsonstr = json.dumps(nodes_data_parsed)
+
+    patch_body = {
+        'data': {
+            'dynamic_json_nodes_data': nodes_data_jsonstr
+        }
+    }
+
+    try:
+        # Perform the patch
+        # The default strategy is a strategic merge patch
+        api_response = v1.patch_namespaced_config_map(
+            name='controller-config',
+            namespace='gke-static-node-ip', # todo fix this
+            body=patch_body
+        )
+        log_info(component, "updated controller-config")
+        return api_response
+    except client.exceptions.ApiException as e:
+        log_error(component, "exception when patching ConfigMap controller-config")
+
 
 def distributor():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-DISTRIBUTOR ##############")
     config.load_incluster_config()
-    get_process_nodes_data_from_json()
+    nodes_data_parsed = get_process_nodes_data_from_json()
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
-            time.sleep(15)
+            update_cm_resource(nodes_data_parsed)
+            time.sleep(60)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
         log_info(component, "control loop stopped")
