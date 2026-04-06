@@ -16,7 +16,7 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import os, time, requests, ipaddress
+import os, time, requests, ipaddress, json
 from logger import log_info, log_error, log_system
 
 component = "controller"
@@ -56,15 +56,26 @@ def get_current_ip():
 
     return current_ip
 
-def get_desired_ip():
-    # get value from env variable
-    desired_ip = os.environ['DESIRED_IP']
+def get_node_data_from_json(current_node):
+    # get data for all nodes from json
+    json_data_env = os.environ['NODES_DATA']
+    nodes_data = json.loads(json_data_env)
 
-    # use IP validator function to check desired ip string
+    # get data for current node
+    try:
+        current_node_data = nodes_data[current_node]
+    except KeyError as key_err:
+        log_error(component, f"Couldn't find data for {current_node}")
+        raise KeyError(key_err)
+
+    desired_ip = current_node_data['desired_ip']
+    gcp_zone = current_node_data['gcp_zone']
+
+    # todo move this validation to operator
     log_info(component, "checking desired IP format validity...")
     validate_ipv4(desired_ip)
 
-    return desired_ip
+    return gcp_zone, desired_ip
 
 def send_fix_request(instance_name, instance_zone, desired_ip):
     url = 'http://fixer:6924/fix'
@@ -83,10 +94,14 @@ def send_fix_request(instance_name, instance_zone, desired_ip):
 
 def controller():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-CONTROLLER ##############")
-    desired_ip = get_desired_ip()
     instance_name = os.environ['NODE_NAME']
-    instance_zone = os.environ['GCP_ZONE']
+    instance_zone, desired_ip = get_node_data_from_json(instance_name)
     check_rate = int(os.getenv('CHECK_RATE_SECONDS', '15'))
+    log_info(component, f"got these values for env vars:")
+    log_info(component, f"instance_name: {instance_name}")
+    log_info(component, f"instance_zone: {instance_zone}")
+    log_info(component, f"desired_ip: {desired_ip}")
+    log_info(component, f"check_rate: {check_rate}")
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-CONTROLLER ##################")
         while True:

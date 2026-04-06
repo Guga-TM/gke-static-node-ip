@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: controller-config
+  namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: controller
+data:
+  dynamic_json_nodes_data: |
+    {
+      "gke-frontier-test2-347a5a33-pse0": {
+        "desired_ip": "35.188.184.20",
+        "gcp_zone": "us-central1-a"
+      },
+      "some-other-node": {
+        "desired_ip": "some-ip",
+        "gcp_zone": "some-zone"
+      }
+    }
+  check_rate_seconds: "15"
+  log_level: info
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fixer-config
+  namespace: gke-static-node-ip
+  labels:
+    app: gke-static-node-ip
+    component: fixer
+data:
+  project_id: callmyapp-dev
+  network_tier: PREMIUM
+  log_level: info
