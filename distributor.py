@@ -53,7 +53,7 @@ def assign_ips_to_nodes(nodes, ips):
     this_nodepool_assignment_config = defaultdict(dict)
     for node in nodes:
         this_nodepool_assignment_config[node]['desired_ip'] = ips.pop()
-        this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node_name)
+        this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
     return this_nodepool_assignment_config
 
 def get_process_raw_nodes_data_from_json():
