@@ -80,7 +80,7 @@ def get_process_raw_nodes_data_from_json():
     return nodes_data_parsed
 
 def monitor_update_nodes_data(nodes_data_parsed):
-    nodes_loaded_into_memory = {}
+    nodes_loaded_into_memory = set()
     for node in nodes_data_parsed:
         nodes_loaded_into_memory.add(node)
     log_info(component, "got this nodes loaded into memory now:")
@@ -88,7 +88,7 @@ def monitor_update_nodes_data(nodes_data_parsed):
 
     json_data_env = os.environ['NODES_DATA_RAW']
     nodes_data_raw = json.loads(json_data_env)
-    nodes_now = {}
+    nodes_now = set()
     for nodepool in nodes_data_raw:
         nodes_now |= set(get_k8s_nodes_from_nodepool(nodepool))
     log_info(component, "actual list of nodes from nodepools that need to be managed:")
