@@ -20,8 +20,8 @@ metadata:
     app: gke-static-node-ip
     component: fixer
 data:
-  project_id: callmyapp-dev
-  network_tier: PREMIUM
+  project_id: {{ .Values.projectId }}
+  network_tier: {{ .Values.networkTier }}
   log_level: info
 ---
 apiVersion: v1
@@ -34,9 +34,5 @@ metadata:
     component: distributor
 data:
   nodepools_desired_ips: |
-    {
-      "test2": [
-        "35.188.184.20"
-      ]
-    }
+    {{ .Values.nodesDesiredIps | toJson }}
   log_level: info

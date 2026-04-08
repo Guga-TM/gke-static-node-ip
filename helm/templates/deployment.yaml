@@ -26,11 +26,13 @@ spec:
                 - key: cloud.google.com/gke-nodepool
                   operator: NotIn
                   values:
-                  - test2
+                  {{- range $k, $v := .Values.nodesDesiredIps }}
+                  - {{$k}}
+                  {{- end }}
       serviceAccountName: distributor
       containers:
       - name: distributor
-        image: gcr.io/callmyapp/gke-static-node-ip:distributor
+        image: {{.Values.image.repo}}/{{.Values.image.distributor.image}}:{{.Values.image.distributor.tag}}
         imagePullPolicy: Always
         env:
         - name: LOG_LEVEL
@@ -72,11 +74,13 @@ spec:
                 - key: cloud.google.com/gke-nodepool
                   operator: NotIn
                   values:
-                  - test2
+                  {{- range $k, $v := .Values.nodesDesiredIps }}
+                  - {{$k}}
+                  {{- end }}
       serviceAccountName: gke-static-node-ip
       containers:
       - name: fixer
-        image: gcr.io/callmyapp/gke-static-node-ip:fixer
+        image: {{.Values.image.repo}}/{{.Values.image.fixer.image}}:{{.Values.image.fixer.tag}}
         imagePullPolicy: Always
         env:
         - name: PROJECT_ID

@@ -25,10 +25,12 @@ spec:
                 - key: cloud.google.com/gke-nodepool
                   operator: In
                   values:
-                  - test2
+                  {{- range $k, $v := .Values.nodesDesiredIps }}
+                  - {{$k}}
+                  {{- end }}
       containers:
         - name: controller
-          image: gcr.io/callmyapp/gke-static-node-ip:controller
+          image: {{.Values.image.repo}}/{{.Values.image.controller.image}}:{{.Values.image.controller.tag}}
           imagePullPolicy: Always
           env:
           - name: NODE_NAME

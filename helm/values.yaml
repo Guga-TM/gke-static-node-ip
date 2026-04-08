@@ -1,0 +1,22 @@
+# email of Service Account in GCP with all permissions from README.md
+# Don't forget to add IAM binding
+gcpServiceAccount: gke-static-node-ip@callmyapp-dev.iam.gserviceaccount.com
+
+projectId: callmyapp-dev
+networkTier: PREMIUM
+
+nodesDesiredIps:
+  test2:
+    - 35.188.184.20
+
+image:
+  repo: gcr.io/callmyapp
+  fixer:
+    image: gke-static-node-ip
+    tag: fixer
+  controller:
+    image: gke-static-node-ip
+    tag: controller
+  distributor:
+    image: gke-static-node-ip
+    tag: distributor
