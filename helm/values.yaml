@@ -12,12 +12,12 @@ networkTier: STANDARD
 # If you specify 2 or more IPs, it's assumed that
 # the number of Nodes in this nodepool is equal to number of IPs
 # you specify
-nodesDesiredIps:
-  demo1:
-    - 123.12.12.12
-    - 133.13.13.13
-  demo2:
-    - 36.123.34.45
+# nodesDesiredIps:
+#   demo1:
+#     - 123.12.12.12
+#     - 133.13.13.13
+#   demo2:
+#     - 36.123.34.45
 
 image:
   repo: ghcr.io/guga-tm
