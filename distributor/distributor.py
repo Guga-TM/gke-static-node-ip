@@ -139,7 +139,7 @@ def update_ds_resource(nodes_data_parsed):
     }
 
     try:
-        apps_v1.patch_namespaced_daemonset(
+        apps_v1.patch_namespaced_daemon_set(
             name='controller',
             namespace='gke-static-node-ip', # todo fix this
             body=patch_body
