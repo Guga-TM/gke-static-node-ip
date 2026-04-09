@@ -20,4 +20,4 @@ CMD ["gunicorn", \
     "--log-level", "error", \
     "--capture-output", \
     "--error-logfile",  "-", \
-    "fixer_server:app"]
+    "server:app"]

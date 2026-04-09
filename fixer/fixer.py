@@ -20,7 +20,7 @@ import os
 from google.cloud import compute_v1
 from google.api_core import exceptions
 from logger import log_info, log_error, log_system
-from fixer_functions import get_validate_vars_from_env
+from functions import get_validate_vars_from_env
 
 component = os.path.splitext(os.path.basename(__file__))[0]
 
