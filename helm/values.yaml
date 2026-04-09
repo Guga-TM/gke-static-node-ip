@@ -1,25 +1,35 @@
 # email of Service Account in GCP with all permissions from README.md
 # Don't forget to add IAM binding
-gcpServiceAccount: gke-static-node-ip@callmyapp-dev.iam.gserviceaccount.com
+# gcpServiceAccount: SA_NAME@PROJECT_ID.iam.gserviceaccount.com
 
-projectId: callmyapp-dev
-networkTier: PREMIUM
+# Use your project ID
+# projectId: PROJECT_ID
 
+# Select Network Tier: STANDARD or PREMIUM
+networkTier: STANDARD
+
+# NodePool -> IP set config
+# If you specify 2 or more IPs, it's assumed that
+# the number of Nodes in this nodepool is equal to number of IPs
+# you specify
 nodesDesiredIps:
-  test2:
-    - 35.188.184.20
+  demo1:
+    - 123.12.12.12
+    - 133.13.13.13
+  demo2:
+    - 36.123.34.45
 
 image:
-  repo: gcr.io/callmyapp
+  repo: ghcr.io/guga-tm
   fixer:
-    image: gke-static-node-ip
-    tag: fixer
+    image: gkesnip-fixer
+    tag: main
   controller:
-    image: gke-static-node-ip
-    tag: controller
+    image: gkesnip-controller
+    tag: main
   distributor:
-    image: gke-static-node-ip
-    tag: distributor
+    image: gkesnip-distributor
+    tag: main
 
 distributor:
   checkRateSeconds: 60

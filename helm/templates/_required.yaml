@@ -1,0 +1,2 @@
+{{- $_ := required "projectId is a required value" .Values.projectId}}
+{{- $_ := required "gcpServiceAccount is a required value" .Values.gcpServiceAccount}}
