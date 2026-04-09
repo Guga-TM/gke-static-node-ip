@@ -42,8 +42,8 @@ def log_info(component, message):
     if get_log_level() == 'info': 
         print(f"{component}: {message}")
 
-def log_warn(component, message):
-    print(Colors.ORANGE + f"{component}: {message}" + Colors.RESET)
+# def log_warn(component, message):
+#     print(Colors.ORANGE + f"{component}: {message}" + Colors.RESET)
 
 def log_error(component, message):
     print(Colors.RED + f"{component}: {message}" + Colors.RESET)

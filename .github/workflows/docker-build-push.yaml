@@ -57,7 +57,8 @@ jobs:
         if: steps.filter.outputs.controller == 'true' || steps.filter.outputs.logger == 'true'
         uses: docker/build-push-action@v5
         with:
-          context: ./controller
+          context: .
+          file: controller/Dockerfile
           push: true
           tags: ${{ steps.meta-controller.outputs.tags }}
       
@@ -79,7 +80,8 @@ jobs:
         if: steps.filter.outputs.distributor == 'true' || steps.filter.outputs.logger == 'true'
         uses: docker/build-push-action@v5
         with:
-          context: ./distributor
+          context: .
+          file: distributor/Dockerfile
           push: true
           tags: ${{ steps.meta-distributor.outputs.tags }}
       
@@ -101,10 +103,10 @@ jobs:
         if: steps.filter.outputs.fixer == 'true' || steps.filter.outputs.logger == 'true'
         uses: docker/build-push-action@v5
         with:
-          context: ./fixer
+          context: .
+          file: fixer/Dockerfile
           push: true
           tags: ${{ steps.meta-fixer.outputs.tags }}
-      
 
       - name: Set up Helm
         if: steps.filter.outputs.helm == 'true'
