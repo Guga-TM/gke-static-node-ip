@@ -117,7 +117,7 @@ def monitor_update_nodes_data(nodes_data_parsed):
     return nodes_data_parsed
 
 def update_ds_resource(nodes_data_parsed):
-    v1 = client.CoreV1Api()
+    apps_v1 = client.AppsV1Api()
 
     nodes_data_jsonstr = json.dumps(nodes_data_parsed)
 
@@ -139,7 +139,7 @@ def update_ds_resource(nodes_data_parsed):
     }
 
     try:
-        apps_v1_api.patch_namespaced_daemonset(
+        apps_v1.patch_namespaced_daemonset(
             name='controller',
             namespace='gke-static-node-ip', # todo fix this
             body=patch_body
