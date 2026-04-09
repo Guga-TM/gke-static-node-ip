@@ -1,3 +1,19 @@
+## Deployment guide
+
+1. Create values.yaml file and set at least the following values: projectId, gcpServiceAccount and nodesDesiredIps (see values.yaml for examples)
+2. Check latest available version of helm chart [here](https://github.com/Guga-TM/gke-static-node-ip/pkgs/container/charts%2Fgke-static-node-ip)
+3. Assuming that your values.yaml file is at path `YOUR_PATH/values.yaml`, run `helm upgrade` command and check rendered manifests (you may want to change chart version to the one you found in step 2):
+```
+helm upgrade --install \
+ -n gke-static-node-ip \
+ --create-namespace \
+ gke-static-node-ip \
+ oci://ghcr.io/guga-tm/charts/gke-static-node-ip:1.0.0 \
+ -f YOUR_PATH/values.yaml \
+ --dry-run
+```
+4. Run without `--dry-run` flag to deploy
+
 ## App components
 
 ### Distributor
