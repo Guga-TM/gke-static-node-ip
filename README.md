@@ -1,16 +1,16 @@
 ## Deployment guide
 
-1. Create values.yaml file and set at least the following values: projectId, gcpServiceAccount and nodesDesiredIps (see values.yaml for examples)
+1. Create `values.yaml` file and set at least the following values: `projectId`, `gcpServiceAccount` and `nodesDesiredIps` (see default `helm/values.yaml` for examples)
 2. Check latest available version of helm chart [here](https://github.com/Guga-TM/gke-static-node-ip/pkgs/container/charts%2Fgke-static-node-ip)
-3. Assuming that your values.yaml file is at path `YOUR_PATH/values.yaml`, run `helm upgrade` command and check rendered manifests (you may want to change chart version to the one you found in step 2):
+3. Assuming that your `values.yaml` file is at path `YOUR_PATH/values.yaml`, run `helm upgrade` command and check rendered manifests (you may want to change chart version to the one you found in step 2):
 ```
 helm upgrade --install \
- -n gke-static-node-ip \
- --create-namespace \
- gke-static-node-ip \
- oci://ghcr.io/guga-tm/charts/gke-static-node-ip:1.0.0 \
- -f YOUR_PATH/values.yaml \
- --dry-run
+  -n gke-static-node-ip \
+  --create-namespace \
+  gke-static-node-ip \
+  oci://ghcr.io/guga-tm/charts/gke-static-node-ip:1.1.0 \
+  -f YOUR_PATH/values.yaml \
+  --dry-run
 ```
 4. Run without `--dry-run` flag to deploy
 
@@ -39,13 +39,16 @@ Runs on the nodes except the ones for which IP needs to be controlled. Sends req
 - compute.zones.list
 - resourcemanager.projects.get
 
-## Required ENV variables
-- `PROJECT_ID` - GCP Project ID
-- `NETWORK_TIER` - Network Tier which you use in your GCP Project. Must be one of `PREMIUM`,`STANDARD`
+## Required values
+- `projectId` - GCP Project ID
+- `gcpServiceAccount` - GCP Service Account that will be used for sending requests to Google API
+- `networkTier` - Network Tier which you use in your GCP Project. Must be one of `PREMIUM`,`STANDARD`. Set to `STANDARD` by default
+- `nodesDesiredIps` - Configuration of 'nodes'->'IPs' mapping. See details and examples in `helm/values.yaml`
 
-## Optional ENV variables
-- `LOG_LEVEL` - one of `info`, `error`
-- `CHECK_RATE_SECONDS` - interval between requests to check current IP address on the Controller
+## Optional values
+- `distributor.checkRateSeconds` - Interval between requests to check current nodes status on the Distributor. Default value is 60
+- `controller.checkRateSeconds` - Interval between requests to check current IP address on the Controller. Default value is 15
+- `<component>.logLevel` - one of `info`, `error`. Default value is `info`
 
 ## Note about permissions
 

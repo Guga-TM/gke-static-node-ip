@@ -1,0 +1,9 @@
+gcpServiceAccount: gke-static-node-ip@callmyapp-dev.iam.gserviceaccount.com
+
+projectId: callmyapp-dev
+
+networkTier: PREMIUM
+
+nodesDesiredIps:
+  test2:
+    - 35.188.184.20

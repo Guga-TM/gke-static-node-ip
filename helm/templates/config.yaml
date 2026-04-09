@@ -9,7 +9,7 @@ metadata:
 data:
   dynamic_json_nodes_data: ""
   check_rate_seconds: "{{ .Values.controller.checkRateSeconds }}"
-  log_level: info
+  log_level: "{{ .Values.controller.logLevel }}"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -22,7 +22,7 @@ metadata:
 data:
   project_id: {{ .Values.projectId }}
   network_tier: {{ .Values.networkTier }}
-  log_level: info
+  log_level: "{{ .Values.fixer.logLevel }}"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -36,4 +36,4 @@ data:
   nodepools_desired_ips: |
     {{ .Values.nodesDesiredIps | toJson }}
   check_rate_seconds: "{{ .Values.distributor.checkRateSeconds }}"
-  log_level: info
+  log_level: "{{ .Values.distributor.logLevel }}"

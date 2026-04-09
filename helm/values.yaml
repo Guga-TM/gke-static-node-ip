@@ -33,5 +33,9 @@ image:
 
 distributor:
   checkRateSeconds: 60
+  logLevel: info
 controller:
   checkRateSeconds: 15
+  logLevel: info
+fixer:
+  logLevel: info
