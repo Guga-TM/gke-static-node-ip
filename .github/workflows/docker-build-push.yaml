@@ -39,11 +39,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Docker meta
+      - name: Docker meta - controller
         id: meta-controller
         if: steps.filter.outputs.controller == 'true' || steps.filter.outputs.logger == 'true'
         uses: docker/metadata-action@v6
         with:
+          flavor: |
+            latest=auto
           images: |
             ghcr.io/guga-tm/gkesnip-controller
           tags: |
@@ -57,13 +59,15 @@ jobs:
         with:
           context: ./controller
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta-controller.outputs.tags }}
       
-      - name: Docker meta
+      - name: Docker meta - distributor
         id: meta-distributor
         if: steps.filter.outputs.distributor == 'true' || steps.filter.outputs.logger == 'true'
         uses: docker/metadata-action@v6
         with:
+          flavor: |
+            latest=auto
           images: |
             ghcr.io/guga-tm/gkesnip-distributor
           tags: |
@@ -77,13 +81,15 @@ jobs:
         with:
           context: ./distributor
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta-distributor.outputs.tags }}
       
-      - name: Docker meta
+      - name: Docker meta - fixer
         id: meta-fixer
         if: steps.filter.outputs.fixer == 'true' || steps.filter.outputs.logger == 'true'
         uses: docker/metadata-action@v6
         with:
+          flavor: |
+            latest=auto
           images: |
             ghcr.io/guga-tm/gkesnip-fixer
           tags: |
@@ -97,7 +103,7 @@ jobs:
         with:
           context: ./fixer
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta-fixer.outputs.tags }}
       
 
       - name: Set up Helm
