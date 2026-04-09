@@ -33,7 +33,7 @@ def validate_ipv4(ip_str):
 def get_current_ip():
     url = 'https://api.ipify.org?format=json'
     current_ip = ''
-    attempts_count = 5
+    attempts_count = 10
     single_attempt_timeout = 5
     log_info(component, "sending request to api.ipify.org to check current IP")
 
@@ -47,8 +47,9 @@ def get_current_ip():
             if i < attempts_count:
                 log_info(component, f"the request timed out, trying again - attempt {i}")
             else:
-                log_error(component, f"the request timed out {attempts_count} times, restarting application")
-                raise requests.exceptions.Timeout
+                log_error(component, f"the request timed out {attempts_count} times")
+                log_error(component, "assuming that internet is not reachable on this node")
+                return "-1"
 
     # use IP validator function to check current ip string
     log_info(component, "sending request to check current IP format validity")
@@ -106,7 +107,11 @@ def controller():
         log_system("############## STARTING GKE-STATIC-NODE-IP-CONTROLLER ##################")
         while True:
             current_ip = get_current_ip()
-            if not current_ip == desired_ip:
+            if current_ip == '-1':
+                log_error(component, "sending last-resort request to fixer")
+                send_fix_request(instance_name, instance_zone, desired_ip)
+                log_system("end of fix loop on controller's side")
+            elif not current_ip == desired_ip:
                 log_error(component, f"found problem: current IP is {current_ip}, but desired is {desired_ip}")
                 log_info(component, "sending request to fixer")
                 send_fix_request(instance_name, instance_zone, desired_ip)

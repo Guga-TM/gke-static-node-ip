@@ -31,7 +31,7 @@ spec:
       containers:
         - name: controller
           image: {{.Values.image.repo}}/{{.Values.image.controller.image}}:{{.Values.image.controller.tag}}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent # 'last resort' fix
           env:
           - name: NODE_NAME
             valueFrom:
