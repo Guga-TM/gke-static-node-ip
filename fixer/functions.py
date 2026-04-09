@@ -58,8 +58,9 @@ def validate_gcp_zone(project_id, zone_name):
     for zone in zones:
         if zone.name == zone_name and zone.status == "UP":
             return True
-            
-    raise Exception(f"Invalid GCP zone name, got {zone_name}")
+
+    log_error(component, f"Invalid GCP zone name, got {zone_name}")  
+    raise ValueError
 
 def validate_gcp_network_tier(network_tier):
     component = "gcp_network_tier_validator"
