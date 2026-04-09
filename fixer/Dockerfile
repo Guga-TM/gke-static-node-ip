@@ -3,13 +3,13 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Copy requirements first for better caching
-COPY requirements-fixer.txt ./requirements.txt
+COPY fixer/requirements.txt ./requirements.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY fixer_functions.py logger.py fixer.py fixer_server.py ./
+COPY logger.py fixer/functions.py fixer/fixer.py fixer/server.py ./
 
 ENV PYTHONUNBUFFERED="1"
 

@@ -20,3 +20,8 @@ image:
   distributor:
     image: gke-static-node-ip
     tag: distributor
+
+distributor:
+  checkRateSeconds: 60
+controller:
+  checkRateSeconds: 15

@@ -59,6 +59,8 @@ def assign_ips_to_nodes(nodes, ips):
 def get_process_raw_nodes_data_from_json():
     # get data for all nodes from json
     json_data_env = os.environ['NODES_DATA_RAW']
+    log_info(component, "loaded data from env:")
+    log_info(component, json_data_env)
     nodes_data_raw = json.loads(json_data_env)
 
     nodes_data_parsed = {} # resulting dictionary
@@ -76,7 +78,9 @@ def get_process_raw_nodes_data_from_json():
             log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips_set)} IPs to assign")
             log_error(component, "check your values.yaml file. Number of nodes in the nodepool and number of IPs to assign must be equal")
             
-    
+    log_info(component, "processed data:")
+    log_info(component, nodes_data_parsed)
+
     return nodes_data_parsed
 
 def monitor_update_nodes_data(nodes_data_parsed):
@@ -130,12 +134,14 @@ def distributor():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-DISTRIBUTOR ##############")
     config.load_incluster_config()
     nodes_data_parsed = get_process_raw_nodes_data_from_json()
+    check_rate = int(os.getenv('CHECK_RATE_SECONDS', '60'))
+    log_info(component, f"check_rate: {check_rate}")
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
             update_cm_resource(nodes_data_parsed)
             nodes_data_parsed = monitor_update_nodes_data(nodes_data_parsed)
-            time.sleep(60)
+            time.sleep(check_rate)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
         log_info(component, "control loop stopped")

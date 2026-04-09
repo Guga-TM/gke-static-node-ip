@@ -40,6 +40,11 @@ spec:
             configMapKeyRef:
               name: distributor-config
               key: log_level
+        - name: CHECK_RATE_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: distributor-config
+              key: check_rate_seconds
         - name: NODES_DATA_RAW
           valueFrom:
             configMapKeyRef:

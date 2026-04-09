@@ -8,7 +8,7 @@ metadata:
     component: controller
 data:
   dynamic_json_nodes_data: ""
-  check_rate_seconds: "15"
+  check_rate_seconds: "{{ .Values.controller.checkRateSeconds }}"
   log_level: info
 ---
 apiVersion: v1
@@ -35,4 +35,5 @@ metadata:
 data:
   nodepools_desired_ips: |
     {{ .Values.nodesDesiredIps | toJson }}
+  check_rate_seconds: "{{ .Values.distributor.checkRateSeconds }}"
   log_level: info

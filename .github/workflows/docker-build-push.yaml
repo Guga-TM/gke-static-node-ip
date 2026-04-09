@@ -1,0 +1,126 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          base: ${{ github.ref_name }}
+          filters: |
+            controller:
+              - 'controller/**'
+            distributor:
+              - 'distributor/**'
+            fixer:
+              - 'fixer/**'
+            helm:
+              - 'helm/**'
+            logger:
+              - 'logger.py'
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Docker meta
+        id: meta-controller
+        if: steps.filter.outputs.controller == 'true' || steps.filter.outputs.logger == 'true'
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ghcr.io/guga-tm/gkesnip-controller
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
+
+      - name: Build and push Docker image - controller
+        if: steps.filter.outputs.controller == 'true' || steps.filter.outputs.logger == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./controller
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+      
+      - name: Docker meta
+        id: meta-distributor
+        if: steps.filter.outputs.distributor == 'true' || steps.filter.outputs.logger == 'true'
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ghcr.io/guga-tm/gkesnip-distributor
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
+
+      - name: Build and push Docker image - distributor
+        if: steps.filter.outputs.distributor == 'true' || steps.filter.outputs.logger == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./distributor
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+      
+      - name: Docker meta
+        id: meta-fixer
+        if: steps.filter.outputs.fixer == 'true' || steps.filter.outputs.logger == 'true'
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ghcr.io/guga-tm/gkesnip-fixer
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
+
+      - name: Build and push Docker image - fixer
+        if: steps.filter.outputs.fixer == 'true' || steps.filter.outputs.logger == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./fixer
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+      
+
+      - name: Set up Helm
+        if: steps.filter.outputs.helm == 'true'
+        uses: azure/setup-helm@v4
+
+      - name: Login to GHCR
+        if: steps.filter.outputs.helm == 'true'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package and push Helm chart
+        if: steps.filter.outputs.helm == 'true'
+        run: |
+          cd ./helm
+          # Extract version from Chart.yaml
+          CHART_VERSION=$(grep '^version:' Chart.yaml | awk '{print $2}')
+          CHART_NAME=$(grep '^name:' Chart.yaml | awk '{print $2}')
+          
+          echo "Packaging $CHART_NAME version $CHART_VERSION"
+          helm package .
+          
+          echo "Pushing to GHCR"
+          # GHCR OCI URLs must be lowercase
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          helm push "${CHART_NAME}-${CHART_VERSION}.tgz" oci://ghcr.io/${OWNER}/charts
