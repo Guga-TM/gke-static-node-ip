@@ -21,6 +21,7 @@ import os
 class Colors:
     RED = '\033[31m'
     BLUE = '\033[34m'
+    ORANGE = '\033[38;5;214m'
     RESET = '\033[0m'
 
 def get_log_level():
@@ -40,6 +41,9 @@ def log_system(message):
 def log_info(component, message):
     if get_log_level() == 'info': 
         print(f"{component}: {message}")
+
+def log_warn(component, message):
+    print(Colors.ORANGE + f"{component}: {message}" + Colors.RESET)
 
 def log_error(component, message):
     print(Colors.RED + f"{component}: {message}" + Colors.RESET)
