@@ -38,10 +38,7 @@ spec:
               fieldRef:
                 fieldPath: spec.nodeName
           - name: NODES_DATA
-            valueFrom:
-              configMapKeyRef:
-                name: controller-config
-                key: dynamic_json_nodes_data
+            value: ''
           - name: CHECK_RATE_SECONDS
             valueFrom:
               configMapKeyRef:

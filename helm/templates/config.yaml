@@ -7,7 +7,6 @@ metadata:
     app: gke-static-node-ip
     component: controller
 data:
-  dynamic_json_nodes_data: ""
   check_rate_seconds: "{{ .Values.controller.checkRateSeconds }}"
   log_level: "{{ .Values.controller.logLevel }}"
 ---

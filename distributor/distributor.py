@@ -106,26 +106,35 @@ def monitor_update_nodes_data(nodes_data_parsed):
     
     return nodes_data_parsed
 
-def update_cm_resource(nodes_data_parsed):
+def update_ds_resource(nodes_data_parsed):
     v1 = client.CoreV1Api()
 
     nodes_data_jsonstr = json.dumps(nodes_data_parsed)
 
+    new_env_var = {"name": "NODES_DATA", "value": nodes_data_jsonstr}
+
     patch_body = {
-        'data': {
-            'dynamic_json_nodes_data': nodes_data_jsonstr
+        "spec": {
+            "template": {
+                "spec": {
+                    "containers": [
+                        {
+                            "name": 'controller',
+                            "env": [new_env_var] # Merges/adds to existing env list
+                        }
+                    ]
+                }
+            }
         }
     }
 
     try:
-        # Perform the patch
-        # The default strategy is a strategic merge patch
-        api_response = v1.patch_namespaced_config_map(
-            name='controller-config',
+        apps_v1_api.patch_namespaced_daemonset(
+            name='controller',
             namespace='gke-static-node-ip', # todo fix this
             body=patch_body
         )
-        log_info(component, "updated controller-config")
+        log_info(component, "updated controller daemonset")
         return api_response
     except client.exceptions.ApiException as e:
         log_error(component, "exception when patching ConfigMap controller-config")
@@ -139,7 +148,7 @@ def distributor():
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
-            update_cm_resource(nodes_data_parsed)
+            update_ds_resource(nodes_data_parsed)
             nodes_data_parsed = monitor_update_nodes_data(nodes_data_parsed)
             time.sleep(check_rate)
     except KeyboardInterrupt:
