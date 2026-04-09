@@ -43,11 +43,21 @@ def get_zone_of_k8s_node(node):
     v1 = client.CoreV1Api()
     
     node_name = node
-    node_info = v1.read_node(name=node_name)
 
-    labels = node_info.metadata.labels
-    zone = labels.get(zone_label)
-    return zone
+    # encountered an issue when the node exists but this label is unavailable
+    # so implemented this retry loop
+    attempts_count = 5
+
+    for i in range(1, attempts_count+1):
+        node_info = v1.read_node(name=node_name)
+        labels = node_info.metadata.labels
+        zone = labels.get(zone_label)
+        if zone is not None and zone != '':
+            return zone
+    
+    log_error(component, f"failed getting GCP zone for the node {node}")
+    log_error(component, "this issue is not recoverable, exiting now...")
+    raise KeyError
 
 def assign_ips_to_nodes(nodes, ips):
     this_nodepool_assignment_config = defaultdict(dict)
