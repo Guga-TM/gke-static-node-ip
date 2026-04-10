@@ -62,7 +62,7 @@ def get_zone_of_k8s_node(node):
 def assign_ips_to_nodes(nodes, ips):
     this_nodepool_assignment_config = defaultdict(dict)
     for node in nodes:
-        this_nodepool_assignment_config[node]['desired_ip'] = ips.pop()
+        this_nodepool_assignment_config[node]['desired_ip'] = ips.pop(0)
         this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
     return this_nodepool_assignment_config
 
@@ -77,15 +77,14 @@ def get_process_raw_nodes_data_from_json():
 
     for nodepool in nodes_data_raw:
         desired_ips = nodes_data_raw[nodepool] # get data from JSON
-        desired_ips_set = set(desired_ips) # convert to Set
         nodes = get_k8s_nodes_from_nodepool(nodepool) # get schedulable nodes in current nodepool
-        if len(nodes) == len(desired_ips_set):
-            nodes_data_parsed |= assign_ips_to_nodes(nodes, desired_ips_set)
-        elif len(nodes) > len(desired_ips_set):
-            log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips_set)} IPs to assign")
+        if len(nodes) == len(desired_ips):
+            nodes_data_parsed |= assign_ips_to_nodes(nodes, desired_ips)
+        elif len(nodes) > len(desired_ips):
+            log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips)} IPs to assign")
             log_error(component, "this may be ok if there are node upgrades now")
         else:
-            log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips_set)} IPs to assign")
+            log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips)} IPs to assign")
             log_error(component, "check your values.yaml file. Number of nodes in the nodepool and number of IPs to assign must be equal")
             
     log_info(component, "processed data:")
@@ -97,8 +96,8 @@ def monitor_nodes_data(nodes_data_parsed):
     nodes_loaded_into_memory = set()
     for node in nodes_data_parsed:
         nodes_loaded_into_memory.add(node)
-    log_info(component, "got these nodes loaded into memory now:")
-    log_info(component, nodes_loaded_into_memory)
+    log_info(component, "got this data loaded into memory now:")
+    log_info(component, nodes_data_parsed)
 
     json_data_env = os.environ['NODES_DATA_RAW']
     nodes_data_raw = json.loads(json_data_env)
@@ -107,7 +106,6 @@ def monitor_nodes_data(nodes_data_parsed):
         nodes_now |= set(get_k8s_nodes_from_nodepool(nodepool))
     log_info(component, "actual list of nodes from nodepools that need to be managed:")
     log_info(component, nodes_now)
-
     
     if nodes_loaded_into_memory == nodes_now:
         log_info(component, "everything is ok, no need to redistribute IPs")
@@ -130,7 +128,7 @@ def redistribute_ips_in_nodepool(nodes_data_old, nodes_now, desired_ips):
     # it's two loops because we first need to remove all used IPs from desired
     for node in nodes_now:
         if node not in nodes_data_old: # redistribution required
-            this_nodepool_assignment_config[node]['desired_ip'] = desired_ips.pop()
+            this_nodepool_assignment_config[node]['desired_ip'] = desired_ips.pop(0)
             this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
 
     return this_nodepool_assignment_config
@@ -140,17 +138,18 @@ def update_nodes_data(nodes_data_loaded, nodes_data_raw):
 
     for nodepool in nodes_data_raw:
         desired_ips = nodes_data_raw[nodepool] # get data from JSON
-        desired_ips_set = set(desired_ips) # convert to Set
         nodes = get_k8s_nodes_from_nodepool(nodepool) # get schedulable nodes in current nodepool
-        if len(nodes) == len(desired_ips_set):
-            nodes_updated |= redistribute_ips_in_nodepool(nodes_data_loaded, nodes, desired_ips_set)
-        elif len(nodes) > len(desired_ips_set):
-            log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips_set)} IPs to assign")
+        if len(nodes) == len(desired_ips):
+            nodes_updated |= redistribute_ips_in_nodepool(nodes_data_loaded, nodes, desired_ips)
+        elif len(nodes) > len(desired_ips):
+            log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips)} IPs to assign")
             log_error(component, "this may be ok if there are node upgrades now")
         else:
-            log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips_set)} IPs to assign")
+            log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips)} IPs to assign")
             log_error(component, "check your values.yaml file. Number of nodes in the nodepool and number of IPs to assign must be equal")
     
+    log_info(component, "updated nodes data:")
+    log_info(component, nodes_updated)
     return nodes_updated
 
 def update_ds_resource(nodes_data_parsed):
