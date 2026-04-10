@@ -21,7 +21,7 @@ rules:
 - apiGroups: ["apps"]
   resources: ["daemonsets"]
   resourceNames: ["controller"]
-  verbs: ["get","create","patch","update"]
+  verbs: ["get","create","patch","update","delete"]
 - apiGroups: [""]
   resources: ["nodes"]
   verbs: ["get", "list"]

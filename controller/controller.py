@@ -16,10 +16,16 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import os, time, requests, ipaddress, json
+import os, time, requests, ipaddress, json, signal, sys
 from logger import log_info, log_error, log_system
 
 component = "controller"
+
+def handle_sigterm(signum, frame):
+    log_system(f"received SIGTERM, exiting {component}...")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 def validate_ipv4(ip_str):
     try:

@@ -16,12 +16,20 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import os, time, json, yaml
+import os, time, json, yaml, signal, sys
 from kubernetes import client,config, utils
 from logger import log_info, log_error, log_system
 from collections import defaultdict
 
 component = "distributor"
+
+def handle_sigterm(signum, frame):
+    log_info(component, "received SIGTERM, deleting controller daemonset...")
+    delete_ds_resource()
+    log_system(f"received SIGTERM, exiting {component}...")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, handle_sigterm)
 
 def get_k8s_nodes_from_nodepool(nodepool):
     v1 = client.CoreV1Api()
