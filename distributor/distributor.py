@@ -197,6 +197,22 @@ def create_ds_resource_from_yaml():
     except client.exceptions.ApiException as e:
         log_error(component, "failed creating controller daemonset")
 
+def delete_ds_resource():
+    k8s_api = client.AppsV1Api()
+    namespace = os.environ['NAMESPACE']
+
+    log_info(component, 'deleting controller daemonset')
+
+    try:
+        api_response = api_instance.delete_namespaced_daemon_set(
+            name='controller',
+            namespace=namespace,
+            propagation_policy='Background'
+        )
+        log_info(component, "deleted controller daemonset")
+    except client.exceptions.ApiException as e:
+        log_error(component, "failed deleting controller daemonset")
+
 def distributor():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-DISTRIBUTOR ##############")
     config.load_incluster_config()
