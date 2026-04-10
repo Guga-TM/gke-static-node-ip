@@ -4,19 +4,19 @@ metadata:
   annotations:
     iam.gke.io/gcp-service-account: {{ .Values.gcpServiceAccount }}
   name: gke-static-node-ip
-  namespace: gke-static-node-ip
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: distributor
-  namespace: gke-static-node-ip
+  namespace: {{ .Release.Namespace }}
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: gke-static-node-ip-distributor
-  namespace: default
+  namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups: ["apps"]
   resources: ["daemonsets"]
@@ -30,11 +30,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: distributor
-  namespace: default
+  namespace: {{ .Release.Namespace }}
 subjects:
 - kind: ServiceAccount
   name: distributor
-  namespace: gke-static-node-ip
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
   name: gke-static-node-ip-distributor

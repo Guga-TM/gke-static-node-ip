@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: distributor
-  namespace: gke-static-node-ip
+  namespace: {{ .Release.Namespace }}
   labels:
     app: gke-static-node-ip
     component: distributor
@@ -40,6 +40,8 @@ spec:
             configMapKeyRef:
               name: distributor-config
               key: log_level
+        - name: NAMESPACE
+          value: {{ .Release.Namespace }}
         - name: CHECK_RATE_SECONDS
           valueFrom:
             configMapKeyRef:
@@ -63,7 +65,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fixer
-  namespace: gke-static-node-ip
+  namespace: {{ .Release.Namespace }}
   labels:
     app: gke-static-node-ip
     component: fixer

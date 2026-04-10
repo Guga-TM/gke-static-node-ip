@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: controller-daemonset
-  namespace: gke-static-node-ip
+  namespace: {{ .Release.Namespace }}
   labels:
     app: gke-static-node-ip
 data:
@@ -11,7 +11,7 @@ data:
     kind: DaemonSet
     metadata:
       name: controller
-      namespace: gke-static-node-ip
+      namespace: {{ .Release.Namespace }}
       labels:
         app: gke-static-node-ip
         component: controller

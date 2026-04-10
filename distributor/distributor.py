@@ -157,7 +157,7 @@ def update_ds_resource(nodes_data_parsed):
     apps_v1 = client.AppsV1Api()
 
     nodes_data_jsonstr = json.dumps(nodes_data_parsed)
-
+    namespace = os.environ['NAMESPACE']
     new_env_var = {"name": "NODES_DATA", "value": nodes_data_jsonstr}
 
     patch_body = {
@@ -178,7 +178,7 @@ def update_ds_resource(nodes_data_parsed):
     try:
         api_response = apps_v1.patch_namespaced_daemon_set(
             name='controller',
-            namespace='gke-static-node-ip', # todo fix this
+            namespace=namespace,
             body=patch_body
         )
         log_info(component, "updated controller daemonset")
@@ -188,10 +188,11 @@ def update_ds_resource(nodes_data_parsed):
 
 def create_ds_resource_from_yaml():
     k8s_api = client.ApiClient()
+    namespace = os.environ['NAMESPACE']
 
     # Create the resource
     try:
-        utils.create_from_yaml(k8s_api, 'controller.yaml', namespace='gke-static-node-ip')
+        utils.create_from_yaml(k8s_api, 'controller.yaml', namespace=namespace)
         log_info(component, "created controller daemonset")
     except client.exceptions.ApiException as e:
         log_error(component, "failed creating controller daemonset")
