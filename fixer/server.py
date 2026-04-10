@@ -18,6 +18,7 @@
 
 from flask import Flask, request
 from fixer import change_node_ip
+from functions import validate_vars_from_env
 import signal
 import sys
 
@@ -45,9 +46,23 @@ def process_fix_request():
     try:
         change_node_ip(instance_name, zone, desired_ip)
     except:
-        return "Error in changing node IP", 500
+        return "error in changing node IP", 500
 
-    return "Request completed", 200
+    return "fix request completed", 200
+
+@app.route("/validate_env", methods=['POST'])
+def process_validate_request():
+    data = request.get_json()
+    if not data:
+        return "JSON data not found", 400
+
+    zone = data.get('zone')
+    try:
+        validate_vars_from_env(zone)
+    except:
+        return "error in validating GCP-related env vars", 500
+
+    return "validation request completed", 200
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=6924)

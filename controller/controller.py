@@ -93,10 +93,26 @@ def send_fix_request(instance_name, instance_zone, desired_ip):
         log_error(component, f"request to fixer API failed with {status} error")
         log_error(component, "check fixer error logs")
 
+def send_validate_request(instance_zone):
+    url = 'http://fixer:6924/validate_env'
+    data = {'zone': instance_zone}
+
+    # sending post request
+    response = requests.post(url, json=data, timeout=180)
+
+    status = response.status_code
+    resp_data = response.text
+    if status == 200 :
+        log_info(component, "GCP zone validation successful")
+    else:
+        log_error(component, f"validate_env request to fixer API failed with {status} error")
+        log_error(component, "check fixer error logs")
+
 def controller():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-CONTROLLER ##############")
     instance_name = os.environ['NODE_NAME']
     instance_zone, desired_ip = get_node_data_from_json(instance_name)
+    send_validate_request(instance_zone)
     check_rate = int(os.getenv('CHECK_RATE_SECONDS', '15'))
     log_info(component, f"got these values for env vars:")
     log_info(component, f"instance_name: {instance_name}")

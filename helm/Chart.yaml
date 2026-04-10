@@ -1,4 +1,4 @@
 apiVersion: v2
 name: gke-static-node-ip
-version: 1.4.0
+version: 1.4.1
 description: App for controlling external IPs of GKE Nodes

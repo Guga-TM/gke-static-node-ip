@@ -168,7 +168,9 @@ def change_node_ip(
 ):
     log_system(f"fixer got request to change IP of {instance_name} to {desired_ip}")
     
-    project_id, network_tier = get_validate_vars_from_env()
+    # these variables were already validated
+    project_id = os.environ['PROJECT_ID']
+    network_tier = os.environ['NETWORK_TIER']
 
     # get access config name of the instance
     access_config_name = get_instance_access_config_if_exists(

@@ -70,23 +70,19 @@ def validate_gcp_network_tier(network_tier):
     
     return True
 
-def get_validate_vars_from_env():
-    # todo maybe all this validation may be moved somewhere else
+def validate_vars_from_env(zone):
     component = "env_vars_fetcher"
     # get values from env variables
     # and then check them using validator functions
+    # zone variable got from controller
 
     project_id = os.environ['PROJECT_ID']
     log_info(component, "sending request to check GCP project id validity")
     check_project_validity(project_id)
 
-    # zone env var moved to Controller
-    # todo this validation may be performed somewhere else
-    # log_info(component, "sending request to check GCP zone validity")
-    # validate_gcp_zone(project_id, zone)
+    log_info(component, "sending request to check GCP zone validity")
+    validate_gcp_zone(project_id, zone)
 
     network_tier = os.environ['NETWORK_TIER']
     log_info(component, "sending request to check GCP network tier validity")
     validate_gcp_network_tier(network_tier)
-
-    return project_id, network_tier
