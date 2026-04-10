@@ -187,11 +187,11 @@ def update_ds_resource(nodes_data_parsed):
         log_error(component, "exception when patching ConfigMap controller-config")
 
 def create_ds_resource_from_yaml():
-    client = client.ApiClient()
+    k8s_api = client.ApiClient()
 
     # Create the resource
     try:
-        utils.create_from_yaml(client, 'daemonset.yaml', namespace='gke-static-node-ip')
+        utils.create_from_yaml(k8s_api, 'daemonset.yaml', namespace='gke-static-node-ip')
         log_info(component, "created controller daemonset")
     except client.exceptions.ApiException as e:
         log_error(component, "failed creating controller daemonset")
