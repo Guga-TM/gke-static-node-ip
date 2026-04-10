@@ -54,7 +54,7 @@ def get_zone_of_k8s_node(node):
 
     # encountered an issue when the node exists but this label is unavailable
     # so implemented this retry loop
-    attempts_count = 5
+    attempts_count = 15
 
     for i in range(1, attempts_count+1):
         node_info = v1.read_node(name=node_name)
@@ -62,6 +62,7 @@ def get_zone_of_k8s_node(node):
         zone = labels.get(zone_label)
         if zone is not None and zone != '':
             return zone
+        time.sleep(1)
     
     log_error(component, f"failed getting GCP zone for the node {node}")
     log_error(component, "this issue is not recoverable, exiting now...")
