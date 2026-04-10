@@ -1,3 +1,0 @@
-{{- required "projectId is a required value" .Values.projectId}}
-{{- required "gcpServiceAccount is a required value" .Values.gcpServiceAccount}}
-{{- required "nodesDesiredIps is a required value" .Values.nodesDesiredIps}}
