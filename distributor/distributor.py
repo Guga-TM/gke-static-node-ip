@@ -206,7 +206,7 @@ def delete_ds_resource():
     log_info(component, 'deleting controller daemonset')
 
     try:
-        api_response = api_instance.delete_namespaced_daemon_set(
+        api_response = k8s_api.delete_namespaced_daemon_set(
             name='controller',
             namespace=namespace,
             propagation_policy='Background'
