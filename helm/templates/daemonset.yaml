@@ -1,51 +1,60 @@
-apiVersion: apps/v1
-kind: DaemonSet
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: controller
+  name: controller-daemonset
   namespace: gke-static-node-ip
   labels:
     app: gke-static-node-ip
-    component: controller
-spec:
-  selector:
-    matchLabels:
-      app: gke-static-node-ip
-      component: controller
-  template:
+data:
+  daemonset.yaml: |
+    apiVersion: apps/v1
+    kind: DaemonSet
     metadata:
+      name: controller
+      namespace: gke-static-node-ip
       labels:
         app: gke-static-node-ip
         component: controller
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                - key: cloud.google.com/gke-nodepool
-                  operator: In
-                  values:
-                  {{- range $k, $v := .Values.nodesDesiredIps }}
-                  - {{$k}}
-                  {{- end }}
-      containers:
-        - name: controller
-          image: {{.Values.image.repo}}/{{.Values.image.controller.image}}:{{.Values.image.controller.tag}}
-          imagePullPolicy: Always
-          env:
-          - name: NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-          - name: NODES_DATA
-            value: ''
-          - name: CHECK_RATE_SECONDS
-            valueFrom:
-              configMapKeyRef:
-                name: controller-config
-                key: check_rate_seconds
-          - name: LOG_LEVEL
-            valueFrom:
-              configMapKeyRef:
-                name: controller-config
-                key: log_level
+      selector:
+        matchLabels:
+          app: gke-static-node-ip
+          component: controller
+      template:
+        metadata:
+          labels:
+            app: gke-static-node-ip
+            component: controller
+        spec:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                    - key: cloud.google.com/gke-nodepool
+                      operator: In
+                      values:
+                      {{- range $k, $v := .Values.nodesDesiredIps }}
+                      - {{$k}}
+                      {{- end }}
+          containers:
+            - name: controller
+              image: {{.Values.image.repo}}/{{.Values.image.controller.image}}:{{.Values.image.controller.tag}}
+              imagePullPolicy: Always
+              env:
+              - name: NODE_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.nodeName
+              - name: NODES_DATA
+                value: ''
+              - name: CHECK_RATE_SECONDS
+                valueFrom:
+                  configMapKeyRef:
+                    name: controller-config
+                    key: check_rate_seconds
+              - name: LOG_LEVEL
+                valueFrom:
+                  configMapKeyRef:
+                    name: controller-config
+                    key: log_level

@@ -50,6 +50,14 @@ spec:
             configMapKeyRef:
               name: distributor-config
               key: nodepools_desired_ips
+        volumeMounts:
+          - name: controller-yaml
+            mountPath: /app/controller.yaml
+            subPath: daemonset.yaml
+      volumes:
+        - name: controller-yaml
+          configMap:
+            name: controller-daemonset
 ---
 apiVersion: apps/v1
 kind: Deployment

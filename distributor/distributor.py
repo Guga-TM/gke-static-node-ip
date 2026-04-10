@@ -16,8 +16,8 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import os, time, json
-from kubernetes import client,config
+import os, time, json, yaml
+from kubernetes import client,config, utils
 from logger import log_info, log_error, log_system
 from collections import defaultdict
 
@@ -150,6 +150,7 @@ def update_nodes_data(nodes_data_loaded, nodes_data_raw):
     
     log_info(component, "updated nodes data:")
     log_info(component, nodes_updated)
+    update_ds_resource(nodes_data_parsed)
     return nodes_updated
 
 def update_ds_resource(nodes_data_parsed):
@@ -185,16 +186,27 @@ def update_ds_resource(nodes_data_parsed):
     except client.exceptions.ApiException as e:
         log_error(component, "exception when patching ConfigMap controller-config")
 
+def create_ds_resource_from_yaml():
+    client = client.ApiClient()
+
+    # Create the resource
+    try:
+        utils.create_from_yaml(client, 'daemonset.yaml', namespace='gke-static-node-ip')
+        log_info(component, "created controller daemonset")
+    except client.exceptions.ApiException as e:
+        log_error(component, "failed creating controller daemonset")
+
 def distributor():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-DISTRIBUTOR ##############")
     config.load_incluster_config()
     nodes_data_parsed = get_process_raw_nodes_data_from_json()
+    create_ds_resource_from_yaml()
+    update_ds_resource(nodes_data_parsed)
     check_rate = int(os.getenv('CHECK_RATE_SECONDS', '60'))
     log_info(component, f"check_rate: {check_rate}")
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
-            update_ds_resource(nodes_data_parsed)
             nodes_data_parsed = monitor_nodes_data(nodes_data_parsed)
             time.sleep(check_rate)
     except KeyboardInterrupt:
