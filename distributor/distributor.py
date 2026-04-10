@@ -194,7 +194,7 @@ def create_ds_resource_from_yaml():
     try:
         utils.create_from_yaml(k8s_api, 'controller.yaml', namespace=namespace, apply=True)
         log_info(component, "created controller daemonset")
-    except kubernetes.utils.create_from_yaml.FailToCreateError as e:
+    except utils.create_from_yaml.FailToCreateError as e:
         log_error(component, "failed creating controller daemonset")
         if e.code == 409:
             og_error(component, "already exists")
