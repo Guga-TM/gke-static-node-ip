@@ -196,6 +196,8 @@ def create_ds_resource_from_yaml():
         log_info(component, "created controller daemonset")
     except client.exceptions.ApiException as e:
         log_error(component, "failed creating controller daemonset")
+        if e.status == 409:
+            og_error(component, "already exists")
 
 def delete_ds_resource():
     k8s_api = client.AppsV1Api()

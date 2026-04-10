@@ -35,7 +35,7 @@ distributor:
   checkRateSeconds: 60
   logLevel: info
 controller:
-  checkRateSeconds: 15
+  checkRateSeconds: 60
   logLevel: info
 fixer:
   logLevel: info
