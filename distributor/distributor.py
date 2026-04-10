@@ -119,7 +119,7 @@ def monitor_nodes_data(nodes_data_parsed):
         log_info(component, "everything is ok, no need to redistribute IPs")
     else:
         log_system("requesting redistribution of IP addresses: new nodes detected")
-        nodes_data_parsed = update_nodes_data(nodes_data_parsed, nodes_now, nodes_data_raw)
+        nodes_data_parsed = update_nodes_data(nodes_data_parsed, nodes_data_raw)
     
     return nodes_data_parsed
 
