@@ -3,6 +3,12 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'controller/**'
+      - 'distributor/**'
+      - 'fixer/**'
+      - 'helm/**'
+      - 'logger.py'
 
 jobs:
   build-and-push:
