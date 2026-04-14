@@ -32,6 +32,7 @@ Runs on the nodes except the ones for which IP needs to be controlled. Sends req
 - compute.addresses.use
 - compute.instances.addAccessConfig
 - compute.instances.deleteAccessConfig
+- compute.instances.updateAccessConfig
 - compute.instances.get
 - compute.instances.list
 - compute.instances.update
