@@ -149,7 +149,7 @@ def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
             this_nodepool_assignment_config[node]['desired_ip'] = curr_ip[1]
             this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
         else:
-            nodes_need_ip.add(node)
+            nodes_need_ip.append(node)
 
 
     # then loop through nodes that don't have correct IP
