@@ -136,6 +136,9 @@ def has_correct_ip(node, desired_ips):
 def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
     this_nodepool_assignment_config = defaultdict(dict)
     
+    # for nodes that don't have correct IP
+    nodes_need_ip = []
+
     for node in nodes_now:
         if node in nodes_data_old: # no redistribution required
             # add this node config as is
@@ -143,18 +146,16 @@ def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
             # and remove IP from set of desired IPs
             desired_ips.remove(nodes_data_old[node]['desired_ip'])
         elif (curr_ip := has_correct_ip(node, desired_ips))[0]:
-            log_system("####DEBUGGING########")
-            log_info(component, curr_ip[0])
-            log_info(component, curr_ip[1])
-            log_system("####DEBUGGING########")
             this_nodepool_assignment_config[node]['desired_ip'] = curr_ip[1]
             this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
+        else:
+            nodes_need_ip.add(node)
 
-    # it's two loops because we first need to remove all used IPs from desired
-    for node in nodes_now:
-        if node not in nodes_data_old: # redistribution required
-            this_nodepool_assignment_config[node]['desired_ip'] = desired_ips.pop(0)
-            this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
+
+    # then loop through nodes that don't have correct IP
+    for node in nodes_need_ip:
+        this_nodepool_assignment_config[node]['desired_ip'] = desired_ips.pop(0)
+        this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
 
     return this_nodepool_assignment_config
 
