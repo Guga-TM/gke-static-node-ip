@@ -49,19 +49,17 @@ def process_fix_request():
 
     return "fix request completed", 200
 
-@app.route("/validate_env", methods=['POST'])
-def process_validate_request():
-    data = request.get_json()
-    if not data:
-        return "JSON data not found", 400
-
-    zone = data.get('zone')
+@app.route("/startup", methods=['GET'])
+def startup_probe():
     try:
-        validate_vars_from_env(zone)
+        validate_vars_from_env()
+        return "validated ok", 200
     except:
-        return "error in validating GCP-related env vars", 500
+        return f"validation error", 500
 
-    return "validation request completed", 200
+@app.route("/ready", methods=['GET'])
+def readiness_probe():
+    return "application ready", 200
 
 @app.route("/get_ip_of_node", methods=['POST'])
 def process_get_ip_request():

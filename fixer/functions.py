@@ -91,23 +91,6 @@ def check_project_validity(project_id):
         log_error(component, f"an error occurred: {e}")
         raise Exception
 
-def validate_gcp_zone(project_id, zone_name):
-    component = "gcp_zone_validator"
-    # Initialize the zones client
-    zones_client = compute_v1.ZonesClient()
-    
-    # List all zones in the project
-    request = compute_v1.ListZonesRequest(project=project_id)
-    zones = zones_client.list(request=request)
-    
-    # Check if the zone_name exists in the list of valid zones
-    for zone in zones:
-        if zone.name == zone_name and zone.status == "UP":
-            return True
-
-    log_error(component, f"Invalid GCP zone name, got {zone_name}")  
-    raise ValueError
-
 def validate_gcp_network_tier(network_tier):
     component = "gcp_network_tier_validator"
     if network_tier not in ["PREMIUM", "STANDARD"]:
@@ -116,18 +99,12 @@ def validate_gcp_network_tier(network_tier):
     
     return True
 
-def validate_vars_from_env(zone):
+def validate_vars_from_env():
     component = "env_vars_fetcher"
-    # get values from env variables
-    # and then check them using validator functions
-    # zone variable got from controller
 
     project_id = os.environ['PROJECT_ID']
     log_info(component, "sending request to check GCP project id validity")
     check_project_validity(project_id)
-
-    log_info(component, "sending request to check GCP zone validity")
-    validate_gcp_zone(project_id, zone)
 
     network_tier = os.environ['NETWORK_TIER']
     log_info(component, "sending request to check GCP network tier validity")

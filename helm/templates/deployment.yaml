@@ -116,3 +116,18 @@ spec:
             configMapKeyRef:
               name: fixer-config
               key: log_level
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 6924
+          initialDelaySeconds: 5
+          timeoutSeconds: 15
+          failureThreshold: 2
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 6924
+          periodSeconds: 30
+          timeoutSeconds: 2
+          failureThreshold: 3
