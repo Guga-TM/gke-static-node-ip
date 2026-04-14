@@ -23,8 +23,102 @@ from logger import log_info, log_error, log_system
 
 component = os.path.splitext(os.path.basename(__file__))[0]
 
-# Update existing access config
-def update_access_config(
+def get_instance_access_config_if_exists(
+    project_id: str,
+    zone: str,
+    instance: str
+):
+    client = compute_v1.InstancesClient()
+
+    # Initialize request arguments
+    request = compute_v1.GetInstanceRequest(
+        project=project_id,
+        zone=zone,
+        instance=instance
+    )
+
+    # List all instances in the zone
+    response = client.get(request=request)
+    
+    access_configs_found = 0
+    access_config_name = ""
+
+    # Find instance with IP and return name only
+    for network_interface in response.network_interfaces:
+        for access_config in network_interface.access_configs:
+            access_configs_found += 1
+            access_config_name = access_config.name
+
+    if access_configs_found == 0:
+        log_info(component, f"access configs not found for instance {instance}")
+        log_info(component, "skipping access config deletion")
+        return -1
+    if access_configs_found > 1:
+        log_error(component, f"Found more access configs for {instance} than expected: {access_configs_found}")
+        raise Exception
+        
+    return access_config_name
+
+# We don't know if access config name is set to its default value
+def delete_access_config(
+    project_id: str,
+    zone: str,
+    instance: str,
+    current_access_config_name: str,
+    network_interface_name: str = "nic0"
+):
+    client = compute_v1.InstancesClient()
+
+    # Initialize request argument(s)
+    request = compute_v1.DeleteAccessConfigInstanceRequest(
+        access_config=current_access_config_name,
+        instance=instance,
+        network_interface=network_interface_name,
+        project=project_id,
+        zone=zone
+    )
+
+    # Make the request
+    operation = client.delete_access_config(request=request)
+
+    log_info(component, f"deleting External IP (access config) for {instance}...")
+    operation.result()
+    log_info(component, f"deleted successfully.")
+
+def add_access_config_random_ip(
+    project_id: str,
+    network_tier: str,
+    zone: str,
+    instance: str,
+    network_interface_name: str = "nic0"
+):
+    client = compute_v1.InstancesClient()
+    
+    # Define the access configuration
+    access_config = compute_v1.AccessConfig()
+    access_config.network_tier = network_tier
+
+    operation = client.add_access_config(
+        project=project_id,
+        zone=zone,
+        instance=instance,
+        network_interface=network_interface_name,
+        access_config_resource=access_config
+    )
+
+    log_info(component, f"setting random IP address to {instance}...")
+    try:
+        operation.result()
+        log_info(component, f"successfully set random IP address. Will try to change it to desired on the next run")
+    except exceptions.BadRequest as google_exception:
+        log_error(component, "failed to assign random IP address, see error below")
+        raise exceptions.BadRequest(google_exception)
+
+
+
+# New Access Config will be created
+# with a default name "External NAT"
+def add_access_config(
     project_id: str,
     network_tier: str,
     zone: str,
@@ -40,7 +134,7 @@ def update_access_config(
     access_config.nat_i_p = ip_to_set
 
     try:
-        operation = client.update_access_config(
+        operation = client.add_access_config(
             project=project_id,
             zone=zone,
             instance=instance,
@@ -63,7 +157,8 @@ def update_access_config(
         log_system("desired IP address set successfully")
     except exceptions.BadRequest as google_exception:
         log_error(component, google_exception)
-        log_error(component, "Desired IP is not available, will try to fix next time")
+        log_error(component, "Desired IP is not available, assigning random IP")
+        add_access_config_random_ip(project_id, network_tier, zone, instance)
 
 def change_node_ip(
     instance_name,
@@ -76,8 +171,24 @@ def change_node_ip(
     project_id = os.environ['PROJECT_ID']
     network_tier = os.environ['NETWORK_TIER']
 
-    # trying to update to desired ip
-    update_access_config(
+    # get access config name of the instance
+    access_config_name = get_instance_access_config_if_exists(
+        project_id=project_id,
+        zone=zone,
+        instance=instance_name
+    )
+
+    # deleting old access config if it exists
+    if access_config_name != -1:
+        delete_access_config(
+            project_id=project_id,
+            zone=zone,
+            instance=instance_name,
+            current_access_config_name=access_config_name
+        )
+
+    # trying to add desired ip
+    add_access_config(
         project_id=project_id,
         network_tier=network_tier,
         zone=zone,
