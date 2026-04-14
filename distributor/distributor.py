@@ -31,6 +31,28 @@ def handle_sigterm(signum, frame):
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
+def wait_for_fixer_ready(timeout=300):
+    log_info(component, f"checking if fixer pod is ready")
+    namespace = os.environ['NAMESPACE']
+    v1 = client.CoreV1Api()
+    w = watch.Watch()
+
+    for event in w.stream(v1.list_namespaced_pod, namespace=namespace, 
+                          label_selector=f"component=fixer", 
+                          timeout_seconds=timeout):
+        pod = event['object']
+        
+        # Check if pod has status conditions
+        if pod.status.conditions:
+            for condition in pod.status.conditions:
+                # The 'Ready' condition must be 'True'
+                if condition.type == 'Ready' and condition.status == 'True':
+                    log_info(component, f"pod {pod.metadata.name} is ready")
+                    w.stop()
+                    return True
+    log_error(component, "timed out waiting for fixer to be ready")
+    raise TimeoutError
+
 def get_k8s_nodes_from_nodepool(nodepool):
     v1 = client.CoreV1Api()
     
@@ -234,6 +256,8 @@ def delete_ds_resource():
 def distributor():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-DISTRIBUTOR ##############")
     config.load_incluster_config()
+    # we need fixer to be ready before starting distributor
+    wait_for_fixer_ready()
     # get data for all nodes from json
     json_data_env = os.environ['NODES_DATA_RAW']
     log_info(component, "loaded data from env:")

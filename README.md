@@ -8,7 +8,7 @@ helm upgrade --install \
   -n gke-static-node-ip \
   --create-namespace \
   gke-static-node-ip \
-  oci://ghcr.io/guga-tm/charts/gke-static-node-ip:2.4.1 \
+  oci://ghcr.io/guga-tm/charts/gke-static-node-ip:2.5.0 \
   -f YOUR_PATH/values.yaml \
   --dry-run
 ```
