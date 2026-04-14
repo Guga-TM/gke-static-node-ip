@@ -143,6 +143,10 @@ def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
             # and remove IP from set of desired IPs
             desired_ips.remove(nodes_data_old[node]['desired_ip'])
         elif (curr_ip := has_correct_ip(node, desired_ips))[0]:
+            log_system("####DEBUGGING########")
+            log_info(component, curr_ip[0])
+            log_info(component, curr_ip[1])
+            log_system("####DEBUGGING########")
             this_nodepool_assignment_config[node]['desired_ip'] = curr_ip[1]
             this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
 
