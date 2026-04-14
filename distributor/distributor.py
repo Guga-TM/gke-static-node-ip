@@ -96,7 +96,7 @@ def get_current_ip_of_node(node):
     data = {'instance_name': node, 'zone': zone}
 
     # sending post request
-    try:
+    #try:
         response = requests.post(url, json=data, timeout=180)
     # except Exception:
     #     log_error(component, f"request to fixer API failed with exception")
