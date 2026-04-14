@@ -121,9 +121,8 @@ def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
 
     return this_nodepool_assignment_config
 
-def distribute_across_nodepool(nodepool, nodes_data_old):
+def distribute_across_nodepool(nodepool, desired_ips, nodes_data_old):
     nodes_data_parsed = {}
-    desired_ips = nodes_data_raw[nodepool] # get data from JSON
     nodes = get_k8s_nodes_from_nodepool(nodepool) # get schedulable nodes in current nodepool
     if len(nodes) == len(desired_ips):
         nodes_data_parsed |= assign_ips_to_nodes(nodes_data_old, nodes, desired_ips)
@@ -140,7 +139,8 @@ def process_raw_nodes_data(nodes_data_loaded, nodes_data_raw):
     nodes_data_parsed = {} # resulting dictionary
 
     for nodepool in nodes_data_raw:
-        nodes_data_parsed |= distribute_across_nodepool(nodepool, nodes_data_loaded)
+        desired_ips = nodes_data_raw[nodepool]
+        nodes_data_parsed |= distribute_across_nodepool(nodepool, desired_ips, nodes_data_loaded)
             
     log_info(component, "processed data:")
     log_info(component, nodes_data_parsed)
