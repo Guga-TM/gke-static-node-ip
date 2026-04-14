@@ -18,7 +18,7 @@
 
 from flask import Flask, request
 from fixer import change_node_ip
-from functions import validate_vars_from_env
+from functions import validate_vars_from_env, get_instance_current_ip
 import signal
 import sys
 
@@ -63,6 +63,22 @@ def process_validate_request():
         return "error in validating GCP-related env vars", 500
 
     return "validation request completed", 200
+
+@app.route("/get_ip_of_node", methods=['POST'])
+def process_get_ip_request():
+    data = request.get_json()
+    if not data:
+        return "JSON data not found", 400
+
+    instance = data.get('instance_name')
+    zone = data.get('zone')
+    project_id = os.environ['PROJECT_ID']
+    try:
+        current_ip = get_instance_current_ip(project_id, zone, instance)
+        return current_ip, 200
+    except:
+        return f"error getting current IP of {instance}", 500
+    
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=6924)

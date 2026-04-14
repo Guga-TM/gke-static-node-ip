@@ -68,48 +68,92 @@ def get_zone_of_k8s_node(node):
     log_error(component, "this issue is not recoverable, exiting now...")
     raise KeyError
 
-def assign_ips_to_nodes(nodes, ips):
+def get_current_ip_of_node(node)
+    url = 'http://fixer:6924/get_ip_of_node'
+    data = {'instance_name': node, 'zone': get_zone_of_k8s_node(node)}
+
+    # sending post request
+    try:
+        response = requests.post(url, json=data, timeout=180)
+    except Exception:
+        log_error(component, f"request to fixer API failed with exception")
+        log_error(component, "check fixer error logs")
+        return "-1"
+
+    status = response.status_code
+    resp_data = response.text
+    if status == 200 :
+        log_info(component, "got response 200 from fixer")
+        return resp_data
+    else:
+        log_error(component, f"request to fixer API failed with {status} error")
+        log_error(component, "check fixer error logs")
+        return "-1"
+
+def has_correct_ip(node, desired_ips):
+    current_ip = get_current_ip_of_node(node)
+    if current_ip == "-1":
+        log_error(component, "failed to check if current IP is one of desired IPs")
+        log_error(component, "will assume that IP is incorrect")
+        return False, current_ip
+    else:
+        log_info(component, f"got information that IP of node {node} is now {current_ip}")
+        return current_ip in desired_ips, current_ip
+
+def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
     this_nodepool_assignment_config = defaultdict(dict)
-    for node in nodes:
-        this_nodepool_assignment_config[node]['desired_ip'] = ips.pop(0)
-        this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
+    
+    for node in nodes_now:
+        if node in nodes_data_old: # no redistribution required
+            # add this node config as is
+            this_nodepool_assignment_config[node]=nodes_data_old[node]
+            # and remove IP from set of desired IPs
+            desired_ips.remove(nodes_data_old[node]['desired_ip'])
+        elif (curr_ip := has_correct_ip(node, desired_ips))[0]:
+            this_nodepool_assignment_config[node]['desired_ip'] = curr_ip[1]
+            this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
+
+    # it's two loops because we first need to remove all used IPs from desired
+    for node in nodes_now:
+        if node not in nodes_data_old: # redistribution required
+            this_nodepool_assignment_config[node]['desired_ip'] = desired_ips.pop(0)
+            this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
+
     return this_nodepool_assignment_config
 
-def get_process_raw_nodes_data_from_json():
-    # get data for all nodes from json
-    json_data_env = os.environ['NODES_DATA_RAW']
-    log_info(component, "loaded data from env:")
-    log_info(component, json_data_env)
-    nodes_data_raw = json.loads(json_data_env)
+def distribute_across_nodepool(nodepool, nodes_data_old):
+    nodes_data_parsed = {}
+    desired_ips = nodes_data_raw[nodepool] # get data from JSON
+    nodes = get_k8s_nodes_from_nodepool(nodepool) # get schedulable nodes in current nodepool
+    if len(nodes) == len(desired_ips):
+        nodes_data_parsed |= assign_ips_to_nodes(nodes_data_old, nodes, desired_ips)
+    elif len(nodes) > len(desired_ips):
+        log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips)} IPs to assign")
+        log_error(component, "this may be ok if there are node upgrades now")
+    else:
+        log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips)} IPs to assign")
+        log_error(component, "check your values.yaml file. Number of nodes in the nodepool and number of IPs to assign must be equal")
+    
+    return nodes_data_parsed
 
+def process_raw_nodes_data(nodes_data_loaded, nodes_data_raw):
     nodes_data_parsed = {} # resulting dictionary
 
     for nodepool in nodes_data_raw:
-        desired_ips = nodes_data_raw[nodepool] # get data from JSON
-        nodes = get_k8s_nodes_from_nodepool(nodepool) # get schedulable nodes in current nodepool
-        if len(nodes) == len(desired_ips):
-            nodes_data_parsed |= assign_ips_to_nodes(nodes, desired_ips)
-        elif len(nodes) > len(desired_ips):
-            log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips)} IPs to assign")
-            log_error(component, "this may be ok if there are node upgrades now")
-        else:
-            log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips)} IPs to assign")
-            log_error(component, "check your values.yaml file. Number of nodes in the nodepool and number of IPs to assign must be equal")
+        nodes_data_parsed |= distribute_across_nodepool(nodepool, nodes_data_loaded)
             
     log_info(component, "processed data:")
     log_info(component, nodes_data_parsed)
 
     return nodes_data_parsed
 
-def monitor_nodes_data(nodes_data_parsed):
+def monitor_nodes_data(nodes_data_parsed, nodes_data_raw):
     nodes_loaded_into_memory = set()
     for node in nodes_data_parsed:
         nodes_loaded_into_memory.add(node)
     log_info(component, "got this data loaded into memory now:")
     log_info(component, nodes_data_parsed)
 
-    json_data_env = os.environ['NODES_DATA_RAW']
-    nodes_data_raw = json.loads(json_data_env)
     nodes_now = set()
     for nodepool in nodes_data_raw:
         nodes_now |= set(get_k8s_nodes_from_nodepool(nodepool))
@@ -120,47 +164,9 @@ def monitor_nodes_data(nodes_data_parsed):
         log_info(component, "everything is ok, no need to redistribute IPs")
     else:
         log_system("requesting redistribution of IP addresses: new nodes detected")
-        nodes_data_parsed = update_nodes_data(nodes_data_parsed, nodes_data_raw)
+        nodes_data_parsed = process_raw_nodes_data(nodes_data_parsed, nodes_data_raw)
     
     return nodes_data_parsed
-
-def redistribute_ips_in_nodepool(nodes_data_old, nodes_now, desired_ips):
-    this_nodepool_assignment_config = defaultdict(dict)
-    
-    for node in nodes_now:
-        if node in nodes_data_old: # no redistribution required
-            # add this node config as is
-            this_nodepool_assignment_config[node]=nodes_data_old[node]
-            # and remove IP from set of desired IPs
-            desired_ips.remove(nodes_data_old[node]['desired_ip'])
-
-    # it's two loops because we first need to remove all used IPs from desired
-    for node in nodes_now:
-        if node not in nodes_data_old: # redistribution required
-            this_nodepool_assignment_config[node]['desired_ip'] = desired_ips.pop(0)
-            this_nodepool_assignment_config[node]['gcp_zone'] = get_zone_of_k8s_node(node)
-
-    return this_nodepool_assignment_config
-
-def update_nodes_data(nodes_data_loaded, nodes_data_raw):
-    nodes_updated = {}
-
-    for nodepool in nodes_data_raw:
-        desired_ips = nodes_data_raw[nodepool] # get data from JSON
-        nodes = get_k8s_nodes_from_nodepool(nodepool) # get schedulable nodes in current nodepool
-        if len(nodes) == len(desired_ips):
-            nodes_updated |= redistribute_ips_in_nodepool(nodes_data_loaded, nodes, desired_ips)
-        elif len(nodes) > len(desired_ips):
-            log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips)} IPs to assign")
-            log_error(component, "this may be ok if there are node upgrades now")
-        else:
-            log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips)} IPs to assign")
-            log_error(component, "check your values.yaml file. Number of nodes in the nodepool and number of IPs to assign must be equal")
-    
-    log_info(component, "updated nodes data:")
-    log_info(component, nodes_updated)
-    update_ds_resource(nodes_data_parsed)
-    return nodes_updated
 
 def update_ds_resource(nodes_data_parsed):
     apps_v1 = client.AppsV1Api()
@@ -228,7 +234,18 @@ def delete_ds_resource():
 def distributor():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-DISTRIBUTOR ##############")
     config.load_incluster_config()
-    nodes_data_parsed = get_process_raw_nodes_data_from_json()
+    # get data for all nodes from json
+    json_data_env = os.environ['NODES_DATA_RAW']
+    log_info(component, "loaded data from env:")
+    log_info(component, json_data_env)
+    nodes_data_raw = json.loads(json_data_env)
+    log_info(component, "loaded json data")
+    nodes_data_parsed = process_raw_nodes_data(
+        nodes_data_loaded={},
+        nodes_data_raw=nodes_data_raw
+    )
+    log_info(component, "processed data:")
+    log_info(component, nodes_data_parsed)
     create_ds_resource_from_yaml()
     update_ds_resource(nodes_data_parsed)
     check_rate = int(os.getenv('CHECK_RATE_SECONDS', '60'))
@@ -236,7 +253,7 @@ def distributor():
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
-            nodes_data_parsed = monitor_nodes_data(nodes_data_parsed)
+            nodes_data_parsed = monitor_nodes_data(nodes_data_parsed, nodes_data_raw)
             time.sleep(check_rate)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C

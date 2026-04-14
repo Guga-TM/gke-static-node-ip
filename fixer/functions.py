@@ -21,6 +21,52 @@ from logger import log_info, log_error
 from google.cloud import compute_v1, resourcemanager_v3
 from google.api_core import exceptions
 
+def get_instance_current_ip(
+    project_id: str,
+    zone: str,
+    instance: str
+):
+    client = compute_v1.InstancesClient()
+
+    # Initialize request arguments
+    request = compute_v1.GetInstanceRequest(
+        project=project_id,
+        zone=zone,
+        instance=instance
+    )
+
+    # Get instance info
+    try:
+        response = client.get(request=request)
+     except exceptions.BadRequest as google_exception:
+        log_error(component, google_exception)
+        raise exceptions.BadRequest(google_exception)
+    except exceptions.ClientError as google_exception:
+        log_error(component, google_exception)
+        raise exceptions.ClientError(google_exception)
+    except exceptions.GoogleAPICallError as google_exception:
+        log_error(component, google_exception.message)
+        raise exceptions.GoogleAPICallError(google_exception)
+    
+    access_configs_found = 0
+    access_config_ip = ""
+
+    # Loop through network interfaces and access configs to find the NAT IP (External IP)
+    for network_interface in response.network_interfaces:
+        for access_config in network_interface.access_configs:
+            access_configs_found += 1
+            access_config_ip = access_config.nat_i_p
+
+    if access_configs_found == 0:
+        log_error(component, f"access configs not found for instance {instance}")
+        access_config_ip = "-1"
+        
+    if access_configs_found > 1:
+        log_error(component, f"found more access configs for {instance} than expected: {access_configs_found}")
+        access_config_ip = "-1"
+        
+    return access_config_ip
+
 def check_project_validity(project_id):
     component = "gcp_project_id_validator"
     try:
