@@ -92,7 +92,8 @@ def get_zone_of_k8s_node(node):
 
 def get_current_ip_of_node(node):
     url = 'http://fixer:6924/get_ip_of_node'
-    data = {'instance_name': node, 'zone': get_zone_of_k8s_node(node)}
+    zone = get_zone_of_k8s_node(node)
+    data = {'instance_name': node, 'zone': zone}
 
     # sending post request
     try:

@@ -19,8 +19,7 @@
 from flask import Flask, request
 from fixer import change_node_ip
 from functions import validate_vars_from_env, get_instance_current_ip
-import signal
-import sys
+import signal, sys, os
 
 app = Flask(__name__)
 
