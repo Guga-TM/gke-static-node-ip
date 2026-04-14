@@ -38,7 +38,7 @@ def get_instance_current_ip(
     # Get instance info
     try:
         response = client.get(request=request)
-     except exceptions.BadRequest as google_exception:
+    except exceptions.BadRequest as google_exception:
         log_error(component, google_exception)
         raise exceptions.BadRequest(google_exception)
     except exceptions.ClientError as google_exception:

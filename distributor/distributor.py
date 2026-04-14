@@ -16,7 +16,7 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import os, time, json, yaml, signal, sys
+import os, time, json, yaml, signal, sys, requests
 from kubernetes import client,config, utils
 from logger import log_info, log_error, log_system
 from collections import defaultdict
@@ -68,7 +68,7 @@ def get_zone_of_k8s_node(node):
     log_error(component, "this issue is not recoverable, exiting now...")
     raise KeyError
 
-def get_current_ip_of_node(node)
+def get_current_ip_of_node(node):
     url = 'http://fixer:6924/get_ip_of_node'
     data = {'instance_name': node, 'zone': get_zone_of_k8s_node(node)}
 
