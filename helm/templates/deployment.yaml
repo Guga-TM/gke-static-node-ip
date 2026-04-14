@@ -120,7 +120,7 @@ spec:
           httpGet:
             path: /startup
             port: 6924
-          initialDelaySeconds: 5
+          initialDelaySeconds: 15
           timeoutSeconds: 15
           failureThreshold: 2
           periodSeconds: 5
