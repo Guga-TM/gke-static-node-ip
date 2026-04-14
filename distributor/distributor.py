@@ -97,7 +97,7 @@ def get_current_ip_of_node(node):
 
     # sending post request
     #try:
-        response = requests.post(url, json=data, timeout=180)
+    response = requests.post(url, json=data, timeout=180)
     # except Exception:
     #     log_error(component, f"request to fixer API failed with exception")
     #     log_error(component, "check fixer error logs")
