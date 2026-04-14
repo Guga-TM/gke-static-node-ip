@@ -95,13 +95,23 @@ def get_current_ip_of_node(node):
     zone = get_zone_of_k8s_node(node)
     data = {'instance_name': node, 'zone': zone}
 
+    log_info(component, f"sending request to get current IP of {node}")
+
     # sending post request
-    #try:
-    response = requests.post(url, json=data, timeout=180)
-    # except Exception:
-    #     log_error(component, f"request to fixer API failed with exception")
-    #     log_error(component, "check fixer error logs")
-    #     return "-1"
+    try:
+        response = requests.post(url, json=data, timeout=180)
+    except requests.exceptions.HTTPError as http_err:
+        log_error(component, f"request to fixer API failed with HTTP exception {http_err}")  # e.g., 404 Not Found
+        return "-1"
+    except requests.exceptions.ConnectionError as conn_err:
+        log_error(component, f"request to fixer API failed with connection exception {conn_err}")  # DNS or network issue
+        return "-1"
+    except requests.exceptions.Timeout as timeout_err:
+        log_error(component, f"request to fixer API failed with timeout exception {timeout_err}")  # Server took too long
+        return "-1"
+    except requests.exceptions.RequestException as req_err:
+        log_error(component, f"request to fixer API failed with exception {req_err}")
+        return "-1"
 
     status = response.status_code
     resp_data = response.text
