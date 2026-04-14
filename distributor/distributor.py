@@ -203,6 +203,7 @@ def monitor_nodes_data(nodes_data_parsed, nodes_data_raw):
     else:
         log_system("requesting redistribution of IP addresses: new nodes detected")
         nodes_data_parsed = process_raw_nodes_data(nodes_data_parsed, nodes_data_raw)
+        update_ds_resource(nodes_data_parsed)
     
     return nodes_data_parsed
 
