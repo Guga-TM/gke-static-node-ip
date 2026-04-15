@@ -202,6 +202,7 @@ def monitor_nodes_data(nodes_data_parsed, nodes_data_raw):
         log_info(component, "everything is ok, no need to redistribute IPs")
     else:
         log_system("requesting redistribution of IP addresses: new nodes detected")
+        log_info(component, nodes_data_raw)
         nodes_data_parsed = process_raw_nodes_data(nodes_data_parsed, nodes_data_raw)
         update_ds_resource(nodes_data_parsed)
     
@@ -270,16 +271,19 @@ def delete_ds_resource():
     except client.exceptions.ApiException as e:
         log_error(component, "failed deleting controller daemonset")
 
+def load_nodes_data_raw_from_env():
+    # get data for all nodes from json
+    json_data_env = os.environ['NODES_DATA_RAW']
+    log_info(component, "loaded data from env:")
+    log_info(component, json_data_env)
+    return json.loads(json_data_env)
+
 def distributor():
     log_system("############## INITIALIZING GKE-STATIC-NODE-IP-DISTRIBUTOR ##############")
     config.load_incluster_config()
     # we need fixer to be ready before starting distributor
     wait_for_fixer_ready()
-    # get data for all nodes from json
-    json_data_env = os.environ['NODES_DATA_RAW']
-    log_info(component, "loaded data from env:")
-    log_info(component, json_data_env)
-    nodes_data_raw = json.loads(json_data_env)
+    nodes_data_raw = load_nodes_data_raw_from_env()
     log_info(component, "loaded json data")
     nodes_data_parsed = process_raw_nodes_data(
         nodes_data_loaded={},
