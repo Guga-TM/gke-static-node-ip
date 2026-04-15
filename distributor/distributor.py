@@ -297,7 +297,7 @@ def distributor():
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
             log_info(component, nodes_data_raw)
-            nodes_data_parsed = monitor_nodes_data(nodes_data_parsed, nodes_data_raw)
+            nodes_data_parsed = monitor_nodes_data(nodes_data_parsed, nodes_data_raw.deepcopy())
             time.sleep(check_rate)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
