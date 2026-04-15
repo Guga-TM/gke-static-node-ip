@@ -160,10 +160,9 @@ def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
     return this_nodepool_assignment_config
 
 def distribute_across_nodepool(nodepool, desired_ips, nodes_data_old):
-    nodes_data_parsed = {}
     nodes = get_k8s_nodes_from_nodepool(nodepool) # get schedulable nodes in current nodepool
     if len(nodes) == len(desired_ips):
-        nodes_data_parsed |= assign_ips_to_nodes(nodes_data_old, nodes, desired_ips)
+        return assign_ips_to_nodes(nodes_data_old, nodes, desired_ips)
     elif len(nodes) > len(desired_ips):
         log_error(component, f"found {len(nodes)} nodes, but have only {len(desired_ips)} IPs to assign")
         log_error(component, "this may be ok if there are node upgrades now")
@@ -171,7 +170,7 @@ def distribute_across_nodepool(nodepool, desired_ips, nodes_data_old):
         log_error(component, f"misconfiguration - found {len(nodes)} nodes and {len(desired_ips)} IPs to assign")
         log_error(component, "check your values.yaml file. Number of nodes in the nodepool and number of IPs to assign must be equal")
     
-    return nodes_data_parsed
+    return nodes_data_old
 
 def process_raw_nodes_data(nodes_data_loaded, nodes_data_raw):
     nodes_data_parsed = {} # resulting dictionary
