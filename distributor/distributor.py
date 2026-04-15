@@ -287,7 +287,7 @@ def distributor():
     log_info(component, nodes_data_raw)
     nodes_data_parsed = process_raw_nodes_data(
         nodes_data_loaded={},
-        nodes_data_raw=nodes_data_raw
+        nodes_data_raw=copy.deepcopy(nodes_data_raw)
     )
     create_ds_resource_from_yaml()
     update_ds_resource(nodes_data_parsed)
