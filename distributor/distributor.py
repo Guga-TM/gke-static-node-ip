@@ -16,7 +16,7 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import os, time, json, yaml, signal, sys, requests
+import os, time, json, yaml, signal, sys, requests, copy
 from kubernetes import client,config, utils,watch
 from logger import log_info, log_error, log_system
 from collections import defaultdict
@@ -297,7 +297,7 @@ def distributor():
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
             log_info(component, nodes_data_raw)
-            nodes_data_parsed = monitor_nodes_data(nodes_data_parsed, nodes_data_raw.deepcopy())
+            nodes_data_parsed = monitor_nodes_data(nodes_data_parsed, copy.deepcopy(nodes_data_raw))
             time.sleep(check_rate)
     except KeyboardInterrupt:
         # Graceful exit on Ctrl+C
