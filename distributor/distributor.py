@@ -124,14 +124,18 @@ def get_current_ip_of_node(node):
         return "-1"
 
 def has_correct_ip(node, desired_ips):
-    current_ip = get_current_ip_of_node(node)
-    if current_ip == "-1":
-        log_error(component, "failed to check if current IP is one of desired IPs")
-        log_error(component, "will assume that IP is incorrect")
-        return False, current_ip
-    else:
-        log_info(component, f"got information that IP of node {node} is now {current_ip}")
-        return current_ip in desired_ips, current_ip
+    attempts_count = 5
+    for i in range(1, attempts_count+1):
+        current_ip = get_current_ip_of_node(node)
+        if current_ip == "-1":
+            log_error(component, f"failed to check if current IP is one of desired IPs, attempt {i}")
+        else:
+            log_info(component, f"got information that IP of node {node} is now {current_ip}")
+            return current_ip in desired_ips, current_ip
+    
+    log_error(component, "failed to check if current IP is one of desired IPs 5 times")
+    log_error(component, "will assume that IP is incorrect")
+    return False, "-1"
 
 def assign_ips_to_nodes(nodes_data_old, nodes_now, desired_ips):
     this_nodepool_assignment_config = defaultdict(dict)
@@ -201,7 +205,6 @@ def monitor_nodes_data(nodes_data_parsed, nodes_data_raw):
         log_info(component, "everything is ok, no need to redistribute IPs")
     else:
         log_system("requesting redistribution of IP addresses: new nodes detected")
-        log_info(component, nodes_data_raw)
         nodes_data_parsed = process_raw_nodes_data(nodes_data_parsed, nodes_data_raw)
         update_ds_resource(nodes_data_parsed)
     
@@ -296,7 +299,6 @@ def distributor():
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
-            log_info(component, nodes_data_raw)
             nodes_data_parsed = monitor_nodes_data(nodes_data_parsed, copy.deepcopy(nodes_data_raw))
             time.sleep(check_rate)
     except KeyboardInterrupt:
