@@ -129,6 +129,7 @@ def has_correct_ip(node, desired_ips):
         current_ip = get_current_ip_of_node(node)
         if current_ip == "-1":
             log_error(component, f"failed to check if current IP is one of desired IPs, attempt {i}")
+            time.sleep(1)
         else:
             log_info(component, f"got information that IP of node {node} is now {current_ip}")
             return current_ip in desired_ips, current_ip
