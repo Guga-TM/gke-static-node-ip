@@ -112,8 +112,7 @@ def add_access_config_random_ip(
         log_info(component, f"successfully set random IP address. Will try to change it to desired on the next run")
     except exceptions.BadRequest as google_exception:
         log_error(component, "failed to assign random IP address, see error below")
-        raise exceptions.BadRequest(google_exception)
-
+        log_error(component, google_exception)
 
 
 # New Access Config will be created
@@ -143,13 +142,13 @@ def add_access_config(
         )
     except exceptions.BadRequest as google_exception:
         log_error(component, google_exception)
-        raise exceptions.BadRequest(google_exception)
+        return
     except exceptions.ClientError as google_exception:
         log_error(component, google_exception)
-        raise exceptions.ClientError(google_exception)
+        return
     except exceptions.GoogleAPICallError as google_exception:
         log_error(component, google_exception.message)
-        raise exceptions.GoogleAPICallError(google_exception)
+        return
 
     log_info(component, f"setting IP address {ip_to_set} to {instance}...")
     try:
