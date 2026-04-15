@@ -285,6 +285,7 @@ def distributor():
     wait_for_fixer_ready()
     nodes_data_raw = load_nodes_data_raw_from_env()
     log_info(component, "loaded json data")
+    log_info(component, nodes_data_raw)
     nodes_data_parsed = process_raw_nodes_data(
         nodes_data_loaded={},
         nodes_data_raw=nodes_data_raw
@@ -296,6 +297,7 @@ def distributor():
     try:
         log_system("############## STARTING GKE-STATIC-NODE-IP-DISTRIBUTOR ##################")
         while True:
+            log_info(component, nodes_data_raw)
             nodes_data_parsed = monitor_nodes_data(nodes_data_parsed, nodes_data_raw)
             time.sleep(check_rate)
     except KeyboardInterrupt:
