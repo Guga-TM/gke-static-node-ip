@@ -8,7 +8,7 @@ helm upgrade --install \
   -n gke-static-node-ip \
   --create-namespace \
   gke-static-node-ip \
-  oci://ghcr.io/guga-tm/charts/gke-static-node-ip:2.6.2 \
+  oci://ghcr.io/guga-tm/charts/gke-static-node-ip:2.6.3 \
   -f YOUR_PATH/values.yaml \
   --dry-run
 ```
@@ -18,7 +18,7 @@ helm upgrade --install \
 
 ### Distributor
 
-Converts `nodepool`->`desired ips set` mapping to a `node`->`desired ip` mapping. Updates `controller-config` configmap.
+Converts `nodepool`->`desired ips set` mapping to a `node`->`desired ip` mapping. Manages `controller` daemonset.
 
 ### Controller
 
