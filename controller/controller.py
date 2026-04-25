@@ -37,21 +37,21 @@ def validate_ipv4(ip_str):
         return False
 
 def get_current_ip():
-    url = 'https://api.ipify.org?format=json'
+    url = 'https://api.ipify.org'
     current_ip = ''
     attempts_count = 10
     single_attempt_timeout = 5
+    sleep_after_failed = 2
     log_info(component, "sending request to api.ipify.org to check current IP")
 
-    for i in range(1, attempts_count+1):
+    for i in range(attempts_count):
         try:
             response = requests.get(url, timeout=single_attempt_timeout)
-            # convert response to json
-            ipinfo_data = response.json()
-            current_ip = ipinfo_data['ip']
+            current_ip = response.text
         except requests.exceptions.Timeout:
             if i < attempts_count:
-                log_info(component, f"the request timed out, trying again - attempt {i}")
+                log_info(component, f"the request timed out, trying again after {sleep_after_failed} seconds - attempt {i+1}")
+                time.sleep(sleep_after_failed)
             else:
                 log_error(component, f"the request timed out {attempts_count} times")
                 log_error(component, "assuming that internet is not reachable on this node")

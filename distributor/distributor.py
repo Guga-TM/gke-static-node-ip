@@ -77,6 +77,7 @@ def get_zone_of_k8s_node(node):
     # encountered an issue when the node exists but this label is unavailable
     # so implemented this retry loop
     attempts_count = 15
+    attempts_interval = 3
 
     for i in range(1, attempts_count+1):
         node_info = v1.read_node(name=node_name)
@@ -84,7 +85,7 @@ def get_zone_of_k8s_node(node):
         zone = labels.get(zone_label)
         if zone is not None and zone != '':
             return zone
-        time.sleep(1)
+        time.sleep(attempts_interval)
     
     log_error(component, f"failed getting GCP zone for the node {node}")
     log_error(component, "this issue is not recoverable, exiting now...")
@@ -124,12 +125,13 @@ def get_current_ip_of_node(node):
         return "-1"
 
 def has_correct_ip(node, desired_ips):
-    attempts_count = 5
+    attempts_count = 10
+    attempts_interval = 5
     for i in range(1, attempts_count+1):
         current_ip = get_current_ip_of_node(node)
         if current_ip == "-1":
             log_error(component, f"failed to check if current IP is one of desired IPs, attempt {i}")
-            time.sleep(5)
+            time.sleep(attempts_interval)
         else:
             log_info(component, f"got information that IP of node {node} is now {current_ip}")
             return current_ip in desired_ips, current_ip
@@ -188,7 +190,7 @@ def process_raw_nodes_data(nodes_data_loaded, nodes_data_raw):
     log_info(component, "processed data:")
     log_info(component, nodes_data_parsed)
 
-    return nodes_data_parsed
+    return nodes_data_parsed, nodes_data_loaded != nodes_data_parsed
 
 def monitor_nodes_data(nodes_data_parsed, nodes_data_raw):
     nodes_loaded_into_memory = set()
@@ -207,8 +209,11 @@ def monitor_nodes_data(nodes_data_parsed, nodes_data_raw):
         log_info(component, "everything is ok, no need to redistribute IPs")
     else:
         log_system("requesting redistribution of IP addresses: new nodes detected")
-        nodes_data_parsed = process_raw_nodes_data(nodes_data_parsed, nodes_data_raw)
-        update_ds_resource(nodes_data_parsed)
+        nodes_data_parsed, is_upd_necessary = process_raw_nodes_data(nodes_data_parsed, nodes_data_raw)
+        if is_upd_necessary:
+            update_ds_resource(nodes_data_parsed)
+        else:
+            log_info(component, "not updating controller daemonset because no change was found")
     
     return nodes_data_parsed
 
@@ -290,7 +295,7 @@ def distributor():
     nodes_data_raw = load_nodes_data_raw_from_env()
     log_info(component, "loaded json data")
     log_info(component, nodes_data_raw)
-    nodes_data_parsed = process_raw_nodes_data(
+    nodes_data_parsed,_ = process_raw_nodes_data(
         nodes_data_loaded={},
         nodes_data_raw=copy.deepcopy(nodes_data_raw)
     )
