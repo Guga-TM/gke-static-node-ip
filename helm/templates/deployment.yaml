@@ -111,6 +111,10 @@ spec:
             configMapKeyRef:
               name: fixer-config
               key: network_tier
+        {{- if .Values.googleChatUrl}}
+        - name: GOOGLE_CHAT_URL
+          value: "{{ .Values.googleChatUrl }}"
+        {{- end }}
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:

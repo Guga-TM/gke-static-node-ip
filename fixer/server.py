@@ -19,7 +19,9 @@
 from flask import Flask, request
 from fixer import change_node_ip
 from functions import validate_vars_from_env, get_instance_current_ip
-import signal, sys, os
+import signal
+import sys
+import os
 
 app = Flask(__name__)
 
@@ -55,7 +57,7 @@ def startup_probe():
         validate_vars_from_env()
         return "validated ok", 200
     except:
-        return f"validation error", 500
+        return "validation error", 500
 
 @app.route("/ready", methods=['GET'])
 def readiness_probe():

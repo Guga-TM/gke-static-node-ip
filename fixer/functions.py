@@ -16,7 +16,8 @@
 
 # email for contacts: aragornguga@gmail.com
 
-import ipaddress, os
+import os
+import requests
 from logger import log_info, log_error
 from google.cloud import compute_v1, resourcemanager_v3
 from google.api_core import exceptions
@@ -26,6 +27,7 @@ def get_instance_current_ip(
     zone: str,
     instance: str
 ):
+    component = "get_instance_current_ip"
     client = compute_v1.InstancesClient()
 
     # Initialize request arguments
@@ -77,7 +79,7 @@ def check_project_validity(project_id):
         project_name = f"projects/{project_id}"
         
         # Attempt to get the project
-        project = client.get_project(name=project_name)
+        client.get_project(name=project_name)
 
         return True
 
@@ -109,3 +111,18 @@ def validate_vars_from_env():
     network_tier = os.environ['NETWORK_TIER']
     log_info(component, "sending request to check GCP network tier validity")
     validate_gcp_network_tier(network_tier)
+
+def notify_gchat_about_success(project_id, zone, instance, ip_to_set):
+    component = "notify_gchat_about_success"
+    url = os.getenv("GOOGLE_CHAT_URL", "no_url_set")
+    if url == "no_url_set":
+        log_info(component, "GOOGLE_CHAT_URL not set, so not sending notification")
+        return
+    log_info(component, "trying to send notification to Google Chat using url set via GOOGLE_CHAT_URL")
+    message = f"✅ Desired IP {ip_to_set} successfully set to instance {instance} from zone {zone} in project {project_id}"
+    data = {'text': message}
+    try:
+        requests.post(url, json=data, timeout=10)
+    except Exception as e:
+        log_error(component, "an error occured while sending POST request to Google Chat:")
+        log_error(component, e)

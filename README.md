@@ -8,7 +8,7 @@ helm upgrade --install \
   -n gke-static-node-ip \
   --create-namespace \
   gke-static-node-ip \
-  oci://ghcr.io/guga-tm/charts/gke-static-node-ip:2.6.3 \
+  oci://ghcr.io/guga-tm/charts/gke-static-node-ip:2.7.0 \
   -f YOUR_PATH/values.yaml \
   --dry-run
 ```
@@ -49,6 +49,7 @@ Runs on the nodes except the ones for which IP needs to be controlled. Sends req
 - `distributor.checkRateSeconds` - Interval between requests to check current nodes status on the Distributor. Default value is 60
 - `controller.checkRateSeconds` - Interval between requests to check current IP address on the Controller. Default value is 15
 - `<component>.logLevel` - one of `info`, `error`. Default value is `info`
+- `googleChatUrl` - URL to Google Chat Webhook. If specified, notification will be sent each time when fixer sets desired IP successfully.
 
 ## Note about permissions
 

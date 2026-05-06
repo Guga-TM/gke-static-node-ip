@@ -20,6 +20,7 @@ import os
 from google.cloud import compute_v1
 from google.api_core import exceptions
 from logger import log_info, log_error, log_system
+from functions import notify_gchat_about_success
 
 component = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -83,7 +84,7 @@ def delete_access_config(
 
     log_info(component, f"deleting External IP (access config) for {instance}...")
     operation.result()
-    log_info(component, f"deleted successfully.")
+    log_info(component, "deleted successfully.")
 
 def add_access_config_random_ip(
     project_id: str,
@@ -109,7 +110,7 @@ def add_access_config_random_ip(
     log_info(component, f"setting random IP address to {instance}...")
     try:
         operation.result()
-        log_info(component, f"successfully set random IP address. Will try to change it to desired on the next run")
+        log_info(component, "successfully set random IP address. Will try to change it to desired on the next run")
     except exceptions.BadRequest as google_exception:
         log_error(component, "failed to assign random IP address, see error below")
         log_error(component, google_exception)
@@ -154,6 +155,7 @@ def add_access_config(
     try:
         operation.result()
         log_system("desired IP address set successfully")
+        notify_gchat_about_success(project_id, zone, instance, ip_to_set)
     except exceptions.BadRequest as google_exception:
         log_error(component, google_exception)
         log_error(component, "Desired IP is not available, assigning random IP")
